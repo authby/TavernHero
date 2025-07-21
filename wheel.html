@@ -43,8 +43,8 @@
 </head>
 <body>
 
-<canvas id="wheel" width="500" height="500"></canvas>
-<button id="spinButton">Крутить!</button>
+<canvas id="wheel" width="500" height="600"></canvas>
+<button id="spinButton">Вращать!</button>
 
 <script>
     const canvas = document.getElementById('wheel');
@@ -81,13 +81,13 @@
 
     function drawWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+    
         const centerX = canvas.width / 2;
         const baseRadius = canvas.width / 2 - 20;
         const extendedRadius = baseRadius + 20;
     
-        // Сдвигаем вниз, чтобы освободить место для стрелки
-        const centerY = canvas.height / 2 + 20;
+        // Сдвигаем вниз чуть больше, чтобы стрелка не обрезалась
+        const centerY = canvas.height / 2 + 30;
     
         rewards.forEach((reward, index) => {
             const startAngle = currentAngle + anglePerSegment * index;
@@ -116,9 +116,9 @@
     
         // Увеличенная стрелка
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY - (extendedRadius + 10));              // Верхняя точка
-        ctx.lineTo(centerX - 25, centerY - (extendedRadius + 60));          // Левая нижняя
-        ctx.lineTo(centerX + 25, centerY - (extendedRadius + 60));          // Правая нижняя
+        ctx.moveTo(centerX, centerY - (extendedRadius + 5));          // Верхняя точка стрелки
+        ctx.lineTo(centerX - 30, centerY - (extendedRadius + 70));     // Левая нижняя
+        ctx.lineTo(centerX + 30, centerY - (extendedRadius + 70));     // Правая нижняя
         ctx.closePath();
         ctx.fillStyle = '#000';
         ctx.fill();
