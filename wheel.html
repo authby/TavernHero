@@ -171,11 +171,12 @@
     pointer.style.animation = 'bounce 0.5s ease';
     setTimeout(() => pointer.style.animation = 'none', 500);
   
-    tg.sendData(JSON.stringify({ reward: reward.text }));
-  
-    setTimeout(() => {
-      tg.close();
-    }, 3000);
+    if (tg) {
+      tg.sendData(JSON.stringify({ reward: reward.text }));
+      setTimeout(() => tg.close(), 3000);
+    } else {
+      console.warn("tg not defined, cannot send data");
+}
   }
 
   spinButton.addEventListener('click', () => {
