@@ -176,12 +176,12 @@
   // Расположение стрелки по центру
   const canvasRect = canvas.getBoundingClientRect();
   pointer.style.left = `${canvasRect.left + canvas.width / 2 - 25}px`;
-  pointer.style.top = `${canvasRect.top + 20}px`;
+  pointer.style.top = `${canvasRect.bottom + 20}px`;
 
   window.addEventListener('resize', () => {
     const canvasRect = canvas.getBoundingClientRect();
     pointer.style.left = `${canvasRect.left + canvas.width / 2 - 25}px`;
-    pointer.style.top = `${canvasRect.top + 20}px`;
+    pointer.style.top = `${canvasRect.bottom + 20}px`;
   });
 
   drawWheel();
