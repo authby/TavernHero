@@ -202,7 +202,7 @@
       const containerRect = wheelContainer.getBoundingClientRect();
       const pointerOffset = 10; // Отступ от нижнего края canvas
       pointer.style.left = `${containerRect.left + wheelContainer.offsetWidth / 2 - 25}px`;
-      pointer.style.top = `${containerRect.top + wheelContainer.offsetHeight - pointerOffset}px`;
+      pointer.style.top = `${containerRect.top + canvas.height - pointerOffset}px`; // Позиция относительно canvas
     }
 
     window.addEventListener('resize', resizeCanvas);
