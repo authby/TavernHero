@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо удачи</title>
+    <style>
+        body { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #222; }
+        canvas { border: 2px solid #fff; }
+        #spinButton { 
+            margin-top: 20px; 
+            padding: 10px 20px; 
+            font-size: 18px; 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        #spinButton:disabled { background: #888; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <button id="spinButton">Крутить!</button>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const spinButton = document.getElementById('spinButton');
+
+        // Награды (должны совпадать с логикой бота)
+        const rewards = [
+            { type: 'exp_gain', value: 15, text: '15 опыта', color: '#4CAF50' },
+            { type: 'exp_gain', value: 20, text: '20 опыта', color: '#66BB6A' },
+            { type: 'item', value: 'Редкий артефакт', text: 'Редкий артефакт', color: '#FFD700' },
+            { type: 'exp_loss', value: 5, text: '-5 опыта', color: '#F44336' }
+        ];
+        const segments = rewards.length;
+        const anglePerSegment = 2 * Math.PI / segments;
+        let currentAngle = 0;
+        let isSpinning = false;
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+
+            rewards.forEach((reward, index) => {
+                const startAngle = anglePerSegment * index;
+                const endAngle = startAngle + anglePerSegment;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.fillStyle = reward.color;
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px Arial';
+                ctx.fillText(reward.text, radius / 2, 0);
+                ctx.restore();
+            });
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, 20);
+            ctx.lineTo(centerX - 10, 40);
+            ctx.lineTo(centerX + 10, 40);
+            ctx.closePath();
+            ctx.fillStyle = '#000';
+            ctx.fill();
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinButton.disabled = true;
+
+            const randomIndex = Math.floor(Math.random() * segments);
+            const targetAngle = randomIndex * anglePerSegment + 2 * Math.PI * (3 + Math.random());
+            const duration = 3000;
+            const startTime = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentAngle = easeOut * targetAngle;
+
+                drawWheel();
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(currentAngle);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                drawWheel();
+                ctx.restore();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    spinButton.disabled = false;
+                    const selectedReward = rewards[Math.floor((currentAngle % (2 * Math.PI)) / anglePerSegment)];
+                    Telegram.WebApp.sendData(JSON.stringify(selectedReward));
+                    Telegram.WebApp.close();
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        spinButton.addEventListener('click', spinWheel);
+        drawWheel();
+    </script>
+</body>
+</html>
