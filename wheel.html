@@ -170,10 +170,9 @@
     pointer.style.animation = 'bounce 0.5s ease';
     setTimeout(() => pointer.style.animation = 'none', 500);
 
-    console.log("⏳ Отправляю данные в Telegram:", JSON.stringify({ reward: reward.text }));
     Telegram.WebApp.sendData(JSON.stringify({ reward: reward.text }));
 
-    setTimeout(() => Telegram.WebApp.close(), 3000);
+    setTimeout(() => Telegram.WebApp.close(), 10000);
   }
 
   spinButton.addEventListener('click', () => {
