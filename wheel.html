@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -15,7 +17,16 @@
       font-family: Arial, sans-serif;
       overflow: hidden;
     }
+    #wheel-container {
+      width: 80vw;
+      max-width: 500px;
+      max-height: 80vh;
+      aspect-ratio: 1 / 1;
+      position: relative;
+    }
     canvas {
+      width: 100%;
+      height: 100%;
       border: 4px solid #fff;
       border-radius: 50%;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
@@ -44,7 +55,7 @@
       width: 0;
       height: 0;
       position: absolute;
-      top: 56px;
+      top: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
       border-bottom: 40px solid #000;
@@ -69,133 +80,134 @@
       100% { transform: translateY(0); }
     }
   </style>
-
-  <!-- Важно: Подключаем Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+  <div id="wheel-container">
+    <div id="pointer"></div>
+    <canvas id="wheel"></canvas>
+  </div>
+  <button id="spinButton">Вращать!</button>
+  <script>
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
 
-<div id="pointer"></div>
-<canvas id="wheel" width="500" height="500"></canvas>
-<button id="spinButton">Вращать!</button>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinButton = document.getElementById('spinButton');
+    const pointer = document.getElementById('pointer');
+    const wheelContainer = document.getElementById('wheel-container');
 
-<script>
-  // Инициализируем Telegram WebApp
-  Telegram.WebApp.ready();
-  Telegram.WebApp.expand();
+    const rewards = [
+      { type: 'exp_gain', value: 15, text: '15 опыта', color: '#4CAF50' },
+      { type: 'exp_gain', value: 20, text: '20 опыта', color: '#66BB6A' },
+      { type: 'item', value: 'Редкий артефакт', text: 'Редкий артефакт', color: '#FFD700' },
+      { type: 'exp_loss', value: 5, text: '-5 опыта', color: '#F44336' },
+      { type: 'exp_gain', value: 10, text: '10 опыта', color: '#81C784' },
+      { type: 'item', value: 'Эпический меч', text: 'Эпический меч', color: '#D81B60' },
+      { type: 'exp_gain', value: 25, text: '25 опыта', color: '#388E3C' },
+      { type: 'exp_loss', value: 10, text: '-10 опыта', color: '#D32F2F' },
+      { type: 'item', value: 'Магический амулет', text: 'Магический амулет', color: '#7B1FA2' },
+      { type: 'exp_gain', value: 30, text: '30 опыта', color: '#2E7D32' },
+      { type: 'item', value: 'Золотой ключ', text: 'Золотой ключ', color: '#FBC02D' },
+      { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#B71C1C' },
+      { type: 'exp_gain', value: 50, text: '50 опыта', color: '#1B5E20' },
+      { type: 'item', value: 'Легендарный щит', text: 'Легендарный щит', color: '#0288D1' },
+      { type: 'exp_gain', value: 5, text: '5 опыта', color: '#A5D6A7' },
+      { type: 'item', value: 'Таинственный свиток', text: 'Таинственный свиток', color: '#8E24AA' },
+      { type: 'exp_loss', value: 20, text: '-20 опыта', color: '#C62828' },
+      { type: 'exp_gain', value: 100, text: '100 опыта', color: '#00695C' },
+      { type: 'item', value: 'Кольцо силы', text: 'Кольцо силы', color: '#F57C00' },
+      { type: 'exp_loss', value: 25, text: '-25 опыта', color: '#B71C1C' }
+    ];
 
-  const canvas = document.getElementById('wheel');
-  const ctx = canvas.getContext('2d');
-  const spinButton = document.getElementById('spinButton');
-  const pointer = document.getElementById('pointer');
+    const anglePerSegment = (2 * Math.PI) / rewards.length;
+    let currentAngle = 0;
+    let spinning = false;
+    let spinVelocity = 0;
 
-  const rewards = [
-    { type: 'exp_gain', value: 15, text: '15 опыта', color: '#4CAF50' },
-    { type: 'exp_gain', value: 20, text: '20 опыта', color: '#66BB6A' },
-    { type: 'item', value: 'Редкий артефакт', text: 'Редкий артефакт', color: '#FFD700' },
-    { type: 'exp_loss', value: 5, text: '-5 опыта', color: '#F44336' },
-    { type: 'exp_gain', value: 10, text: '10 опыта', color: '#81C784' },
-    { type: 'item', value: 'Эпический меч', text: 'Эпический меч', color: '#D81B60' },
-    { type: 'exp_gain', value: 25, text: '25 опыта', color: '#388E3C' },
-    { type: 'exp_loss', value: 10, text: '-10 опыта', color: '#D32F2F' },
-    { type: 'item', value: 'Магический амулет', text: 'Магический амулет', color: '#7B1FA2' },
-    { type: 'exp_gain', value: 30, text: '30 опыта', color: '#2E7D32' },
-    { type: 'item', value: 'Золотой ключ', text: 'Золотой ключ', color: '#FBC02D' },
-    { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#B71C1C' },
-    { type: 'exp_gain', value: 50, text: '50 опыта', color: '#1B5E20' },
-    { type: 'item', value: 'Легендарный щит', text: 'Легендарный щит', color: '#0288D1' },
-    { type: 'exp_gain', value: 5, text: '5 опыта', color: '#A5D6A7' },
-    { type: 'item', value: 'Таинственный свиток', text: 'Таинственный свиток', color: '#8E24AA' },
-    { type: 'exp_loss', value: 20, text: '-20 опыта', color: '#C62828' },
-    { type: 'exp_gain', value: 100, text: '100 опыта', color: '#00695C' },
-    { type: 'item', value: 'Кольцо силы', text: 'Кольцо силы', color: '#F57C00' },
-    { type: 'exp_loss', value: 25, text: '-25 опыта', color: '#B71C1C' }
-  ];
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const baseRadius = canvas.width / 2 - 20;
+      const extendedRadius = baseRadius + 20;
 
-  const anglePerSegment = (2 * Math.PI) / rewards.length;
-  let currentAngle = 0;
-  let spinning = false;
-  let spinVelocity = 0;
+      rewards.forEach((reward, index) => {
+        const startAngle = currentAngle + anglePerSegment * index;
+        const endAngle = startAngle + anglePerSegment;
 
-  function drawWheel() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const baseRadius = canvas.width / 2 - 20;
-    const extendedRadius = baseRadius + 20;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
+        ctx.fillStyle = reward.color;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#fff';
+        ctx.stroke();
 
-    rewards.forEach((reward, index) => {
-      const startAngle = currentAngle + anglePerSegment * index;
-      const endAngle = startAngle + anglePerSegment;
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + anglePerSegment / 2);
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.max(10, canvas.width / 40)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(reward.text, baseRadius * 0.7, 0);
+        ctx.restore();
+      });
+    }
 
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
-      ctx.fillStyle = reward.color;
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#fff';
-      ctx.stroke();
-
-      // Text
-      ctx.save();
-      ctx.translate(centerX, centerY);
-      ctx.rotate(startAngle + anglePerSegment / 2);
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 13px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(reward.text, baseRadius * 0.7, 0);
-      ctx.restore();
-    });
-  }
-
-  function animate() {
-    if (spinning) {
-      currentAngle += spinVelocity;
-      spinVelocity *= 0.985;
-      if (spinVelocity < 0.002) {
-        spinning = false;
-        spinButton.disabled = false;
-        showResult();
+    function animate() {
+      if (spinning) {
+        currentAngle += spinVelocity;
+        spinVelocity *= 0.985;
+        if (spinVelocity < 0.002) {
+          spinning = false;
+          spinButton.disabled = false;
+          showResult();
+        }
       }
+      drawWheel();
+      requestAnimationFrame(animate);
     }
-    drawWheel();
-    requestAnimationFrame(animate);
-  }
 
-  function showResult() {
-    const correctedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI)) + Math.PI / 2) % (2 * Math.PI);
-    const index = Math.floor(correctedAngle / anglePerSegment);
-    const reward = rewards[index];
-    pointer.style.animation = 'bounce 0.5s ease';
-    setTimeout(() => pointer.style.animation = 'none', 500);
+    function showResult() {
+      const correctedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI)) + Math.PI / 2) % (2 * Math.PI);
+      const index = Math.floor(correctedAngle / anglePerSegment);
+      const reward = rewards[index];
+      pointer.style.animation = 'bounce 0.5s ease';
+      setTimeout(() => pointer.style.animation = 'none', 500);
 
-    Telegram.WebApp.sendData(JSON.stringify({ reward: reward.text }));
-
-    setTimeout(() => Telegram.WebApp.close(), 10000);
-  }
-
-  spinButton.addEventListener('click', () => {
-    if (!spinning) {
-      spinning = true;
-      spinVelocity = Math.random() * 0.15 + 0.1;
-      spinButton.disabled = true;
+      Telegram.WebApp.sendData(JSON.stringify({ reward: reward.text }));
+      setTimeout(() => Telegram.WebApp.close(), 10000);
     }
-  });
 
-  // Расположение стрелки по центру
-  function positionPointer() {
-    const canvasRect = canvas.getBoundingClientRect();
-    pointer.style.left = `${canvasRect.left + canvas.width / 2 - 25}px`;
-    pointer.style.top = `${canvasRect.bottom - 20}px`;
-  }
-  positionPointer();
-  window.addEventListener('resize', positionPointer);
+    spinButton.addEventListener('click', () => {
+      if (!spinning) {
+        spinning = true;
+        spinVelocity = Math.random() * 0.15 + 0.1;
+        spinButton.disabled = true;
+      }
+    });
 
-  drawWheel();
-  animate();
-</script>
+    function resizeCanvas() {
+      canvas.width = wheelContainer.offsetWidth;
+      canvas.height = wheelContainer.offsetHeight;
+      positionPointer();
+      drawWheel();
+    }
 
+    function positionPointer() {
+      const containerRect = wheelContainer.getBoundingClientRect();
+      pointer.style.left = `${containerRect.left + wheelContainer.offsetWidth / 2 - 25}px`;
+      pointer.style.top = `${containerRect.bottom - 40}px`;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
 </body>
 </html>
+
