@@ -28,22 +28,20 @@
       max-height: 80vh;
       aspect-ratio: 1 / 1;
       position: relative;
-      margin-bottom: 20px; /* увеличим отступ под стрелку */
+      margin-bottom: 20px;
     }
     #pointer {
       width: 0;
       height: 0;
       position: absolute;
-      bottom: -30px; /* Ниже колеса */
+      bottom: -30px;
       left: 50%;
       transform: translateX(-50%);
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-top: none;
       border-bottom: 40px solid #000;
       animation: none;
     }
-    
     #pointer::after {
       content: '';
       position: absolute;
@@ -53,7 +51,6 @@
       height: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-top: none;
       border-bottom: 40px solid #000;
       filter: drop-shadow(0 0 4px white);
     }
@@ -84,37 +81,39 @@
       background: #666;
       cursor: not-allowed;
     }
-    @media (min-width: 768px) {
-      body {
-        justify-content: flex-start;
-        padding-top: 50px;
-      }
-    
-      #wheel-container {
-        max-width: 600px;
-        max-height: 600px;
-        margin-bottom: 40px;
-      }
-    
-      #spinButton {
-        font-size: 24px;
-        padding: 18px 40px;
-      }
-    
-      #pointer {
-        bottom: -40px;
-        border-bottom-width: 50px;
-      }
-    
-      #pointer::after {
-        border-bottom-width: 50px;
-      }
-    }
     @keyframes bounce {
       0%   { transform: translateX(-50%) translateY(0); }
       30%  { transform: translateX(-50%) translateY(-10px); }
       60%  { transform: translateX(-50%) translateY(5px); }
       100% { transform: translateX(-50%) translateY(0); }
+    }
+
+    /* --- Desktop адаптация --- */
+    @media (min-width: 768px) {
+      body {
+        justify-content: flex-start;
+        padding-top: 50px;
+      }
+
+      #wheel-container {
+        max-width: 600px;
+        max-height: 600px;
+        margin-bottom: 40px;
+      }
+
+      #spinButton {
+        font-size: 24px;
+        padding: 18px 40px;
+      }
+
+      #pointer {
+        bottom: -40px;
+        border-bottom-width: 50px;
+      }
+
+      #pointer::after {
+        border-bottom-width: 50px;
+      }
     }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
