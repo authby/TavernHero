@@ -25,17 +25,17 @@
       position: relative;
       margin-bottom: 60px; /* увеличим отступ под стрелку */
     }
-    
     #pointer {
       width: 0;
       height: 0;
       position: absolute;
-      bottom: -40px;
+      bottom: -40px; /* Ниже колеса */
       left: 50%;
       transform: translateX(-50%);
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-top: 40px solid #000;
+      border-top: none;
+      border-bottom: 40px solid #000;
       animation: none;
     }
     
@@ -48,7 +48,8 @@
       height: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-top: 40px solid #000;
+      border-top: none;
+      border-bottom: 40px solid #000;
       filter: drop-shadow(0 0 4px white);
     }
     canvas {
@@ -199,15 +200,7 @@
     function resizeCanvas() {
       canvas.width = wheelContainer.offsetWidth;
       canvas.height = wheelContainer.offsetHeight;
-      positionPointer();
       drawWheel();
-    }
-
-    function positionPointer() {
-      const containerRect = wheelContainer.getBoundingClientRect();
-      const pointerOffset = 10; // Отступ от нижнего края canvas
-      pointer.style.left = `${containerRect.left + wheelContainer.offsetWidth / 2 - 25}px`; // Центр по горизонтали
-      pointer.style.top = `${containerRect.top + wheelContainer.offsetHeight + pointerOffset}px`; // Прямо под canvas
     }
 
     window.addEventListener('resize', resizeCanvas);
