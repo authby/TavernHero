@@ -76,6 +76,9 @@
 <button id="spinButton">Вращать!</button>
 
 <script>
+  const tg = window.Telegram.WebApp;
+  tg.expand();  // расширить окно (опционально)
+  
   const canvas = document.getElementById('wheel');
   const ctx = canvas.getContext('2d');
   const spinButton = document.getElementById('spinButton');
@@ -162,7 +165,12 @@
     const reward = rewards[index];
     pointer.style.animation = 'bounce 0.5s ease';
     setTimeout(() => pointer.style.animation = 'none', 500);
-    setTimeout(() => alert('Выпало: ' + reward.text), 200);
+  
+    tg.sendData(JSON.stringify({ reward: reward.text }));
+  
+    setTimeout(() => {
+      tg.close();
+    }, 3000);
   }
 
   spinButton.addEventListener('click', () => {
