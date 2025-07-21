@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Колесо фортуны</title>
   <style>
     body {
@@ -68,6 +68,9 @@
       100% { transform: translateY(0); }
     }
   </style>
+
+  <!-- Важно: Подключаем Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -76,15 +79,10 @@
 <button id="spinButton">Вращать!</button>
 
 <script>
-  if (window.Telegram && window.Telegram.WebApp) {
-    const tg = window.Telegram?.WebApp;
-    tg.ready(); // Явно вызываем ready для инициализации
-    tg.expand(); // Расширить окно
-    console.log("Telegram WebApp initialized successfully, version:", tg.version);
-  } else {
-    console.error("Telegram WebApp API is not available. Ensure the page is loaded inside Telegram.");
-  }
-  
+  // Инициализируем Telegram WebApp
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+
   const canvas = document.getElementById('wheel');
   const ctx = canvas.getContext('2d');
   const spinButton = document.getElementById('spinButton');
@@ -171,13 +169,9 @@
     const reward = rewards[index];
     pointer.style.animation = 'bounce 0.5s ease';
     setTimeout(() => pointer.style.animation = 'none', 500);
-  
-    if (tg) {
-      tg.sendData(JSON.stringify({ reward: reward.text }));
-      setTimeout(() => tg.close(), 3000);
-    } else {
-      console.warn("tg not defined, cannot send data");
-}
+
+    Telegram.WebApp.sendData(JSON.stringify({ reward: reward.text }));
+    setTimeout(() => Telegram.WebApp.close(), 3000);
   }
 
   spinButton.addEventListener('click', () => {
@@ -189,15 +183,13 @@
   });
 
   // Расположение стрелки по центру
-  const canvasRect = canvas.getBoundingClientRect();
-  pointer.style.left = `${canvasRect.left + canvas.width / 2 - 25}px`;
-  pointer.style.top = `${canvasRect.bottom - 20}px`;
-
-  window.addEventListener('resize', () => {
+  function positionPointer() {
     const canvasRect = canvas.getBoundingClientRect();
     pointer.style.left = `${canvasRect.left + canvas.width / 2 - 25}px`;
     pointer.style.top = `${canvasRect.bottom - 20}px`;
-  });
+  }
+  positionPointer();
+  window.addEventListener('resize', positionPointer);
 
   drawWheel();
   animate();
