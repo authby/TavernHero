@@ -114,11 +114,11 @@
             ctx.restore();
         });
     
-        // Стрелка (вверху)
+        // Увеличенная стрелка
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY - (extendedRadius + 10));
-        ctx.lineTo(centerX - 15, centerY - (extendedRadius + 40));
-        ctx.lineTo(centerX + 15, centerY - (extendedRadius + 40));
+        ctx.moveTo(centerX, centerY - (extendedRadius + 10));              // Верхняя точка
+        ctx.lineTo(centerX - 25, centerY - (extendedRadius + 60));          // Левая нижняя
+        ctx.lineTo(centerX + 25, centerY - (extendedRadius + 60));          // Правая нижняя
         ctx.closePath();
         ctx.fillStyle = '#000';
         ctx.fill();
