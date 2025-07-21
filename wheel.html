@@ -76,12 +76,13 @@
 <button id="spinButton">Вращать!</button>
 
 <script>
-  const tg = window.Telegram && window.Telegram.WebApp;
-  
-  if (tg) {
-    tg.expand(); // расширить окно (опционально)
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready(); // Явно вызываем ready для инициализации
+    tg.expand(); // Расширить окно
+    console.log("Telegram WebApp initialized successfully, version:", tg.version);
   } else {
-    console.warn("Telegram WebApp API is not available");
+    console.error("Telegram WebApp API is not available. Ensure the page is loaded inside Telegram.");
   }
   
   const canvas = document.getElementById('wheel');
