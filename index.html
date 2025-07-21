@@ -1,116 +1,160 @@
-<!-- Замените секцию <style> в <head> на следующую для улучшенного стиля -->
-<style>
-    body { 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        height: 100vh; 
-        margin: 0; 
-        background: linear-gradient(135deg, #222, #333); 
-        font-family: Arial, sans-serif;
-    }
-    canvas { 
-        border: 4px solid #fff; 
-        border-radius: 50%; 
-        box-shadow: 0 0 20px rgba(255,255,255,0.3); 
-        background: #fff;
-    }
-    #spinButton { 
-        margin-top: 30px; 
-        padding: 15px 30px; 
-        font-size: 20px; 
-        background: linear-gradient(45deg, #4CAF50, #66BB6A); 
-        color: white; 
-        border: none; 
-        border-radius: 8px; 
-        cursor: pointer; 
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    #spinButton:hover:not(:disabled) { 
-        transform: scale(1.05); 
-        box-shadow: 0 0 15px rgba(76,175,80,0.5);
-    }
-    #spinButton:disabled { 
-        background: #666; 
-        cursor: not-allowed; 
-    }
-</style>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Колесо фортуны</title>
+    <style>
+        body { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background: linear-gradient(135deg, #222, #333); 
+            font-family: Arial, sans-serif;
+        }
+        canvas { 
+            border: 4px solid #fff; 
+            border-radius: 50%; 
+            box-shadow: 0 0 20px rgba(255,255,255,0.3); 
+            background: #fff;
+        }
+        #spinButton { 
+            margin-top: 30px; 
+            padding: 15px 30px; 
+            font-size: 20px; 
+            background: linear-gradient(45deg, #4CAF50, #66BB6A); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #spinButton:hover:not(:disabled) { 
+            transform: scale(1.05); 
+            box-shadow: 0 0 15px rgba(76,175,80,0.5);
+        }
+        #spinButton:disabled { 
+            background: #666; 
+            cursor: not-allowed; 
+        }
+    </style>
+</head>
+<body>
 
-<!-- Измените размер canvas в <body> -->
 <canvas id="wheel" width="500" height="500"></canvas>
+<button id="spinButton">Крутить!</button>
 
-<!-- Замените массив rewards в <script> на новый с 20 вариантами -->
-const rewards = [
-    { type: 'exp_gain', value: 15, text: '15 опыта', color: '#4CAF50' },
-    { type: 'exp_gain', value: 20, text: '20 опыта', color: '#66BB6A' },
-    { type: 'item', value: 'Редкий артефакт', text: 'Редкий артефакт', color: '#FFD700' },
-    { type: 'exp_loss', value: 5, text: '-5 опыта', color: '#F44336' },
-    { type: 'exp_gain', value: 10, text: '10 опыта', color: '#81C784' },
-    { type: 'item', value: 'Эпический меч', text: 'Эпический меч', color: '#D81B60' },
-    { type: 'exp_gain', value: 25, text: '25 опыта', color: '#388E3C' },
-    { type: 'exp_loss', value: 10, text: '-10 опыта', color: '#D32F2F' },
-    { type: 'item', value: 'Магический амулет', text: 'Магический амулет', color: '#7B1FA2' },
-    { type: 'exp_gain', value: 30, text: '30 опыта', color: '#2E7D32' },
-    { type: 'item', value: 'Золотой ключ', text: 'Золотой ключ', color: '#FBC02D' },
-    { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#B71C1C' },
-    { type: 'exp_gain', value: 50, text: '50 опыта', color: '#1B5E20' },
-    { type: 'item', value: 'Легендарный щит', text: 'Легендарный щит', color: '#0288D1' },
-    { type: 'exp_gain', value: 5, text: '5 опыта', color: '#A5D6A7' },
-    { type: 'item', value: 'Таинственный свиток', text: 'Таинственный свиток', color: '#8E24AA' },
-    { type: 'exp_loss', value: 20, text: '-20 опыта', color: '#C62828' },
-    { type: 'exp_gain', value: 100, text: '100 опыта', color: '#00695C' },
-    { type: 'item', value: 'Кольцо силы', text: 'Кольцо силы', color: '#F57C00' },
-    { type: 'exp_loss', value: 25, text: '-25 опыта', color: '#B71C1C' }
-];
+<script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinButton = document.getElementById('spinButton');
 
-<!-- Замените функцию drawWheel в <script> на следующую для улучшенной отрисовки -->
-function drawWheel() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = canvas.width / 2 - 20;
+    const rewards = [
+        { type: 'exp_gain', value: 15, text: '15 опыта', color: '#4CAF50' },
+        { type: 'exp_gain', value: 20, text: '20 опыта', color: '#66BB6A' },
+        { type: 'item', value: 'Редкий артефакт', text: 'Редкий артефакт', color: '#FFD700' },
+        { type: 'exp_loss', value: 5, text: '-5 опыта', color: '#F44336' },
+        { type: 'exp_gain', value: 10, text: '10 опыта', color: '#81C784' },
+        { type: 'item', value: 'Эпический меч', text: 'Эпический меч', color: '#D81B60' },
+        { type: 'exp_gain', value: 25, text: '25 опыта', color: '#388E3C' },
+        { type: 'exp_loss', value: 10, text: '-10 опыта', color: '#D32F2F' },
+        { type: 'item', value: 'Магический амулет', text: 'Магический амулет', color: '#7B1FA2' },
+        { type: 'exp_gain', value: 30, text: '30 опыта', color: '#2E7D32' },
+        { type: 'item', value: 'Золотой ключ', text: 'Золотой ключ', color: '#FBC02D' },
+        { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#B71C1C' },
+        { type: 'exp_gain', value: 50, text: '50 опыта', color: '#1B5E20' },
+        { type: 'item', value: 'Легендарный щит', text: 'Легендарный щит', color: '#0288D1' },
+        { type: 'exp_gain', value: 5, text: '5 опыта', color: '#A5D6A7' },
+        { type: 'item', value: 'Таинственный свиток', text: 'Таинственный свиток', color: '#8E24AA' },
+        { type: 'exp_loss', value: 20, text: '-20 опыта', color: '#C62828' },
+        { type: 'exp_gain', value: 100, text: '100 опыта', color: '#00695C' },
+        { type: 'item', value: 'Кольцо силы', text: 'Кольцо силы', color: '#F57C00' },
+        { type: 'exp_loss', value: 25, text: '-25 опыта', color: '#B71C1C' }
+    ];
 
-    // Фон колеса
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius + 10, 0, 2 * Math.PI);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
+    const anglePerSegment = (2 * Math.PI) / rewards.length;
+    let currentAngle = 0;
+    let spinning = false;
+    let spinVelocity = 0;
 
-    // Сегменты
-    rewards.forEach((reward, index) => {
-        const startAngle = anglePerSegment * index;
-        const endAngle = startAngle + anglePerSegment;
+    function drawWheel() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = canvas.width / 2 - 20;
+
+        rewards.forEach((reward, index) => {
+            const startAngle = currentAngle + anglePerSegment * index;
+            const endAngle = startAngle + anglePerSegment;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.fillStyle = reward.color;
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#fff';
+            ctx.stroke();
+
+            // Текст
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + anglePerSegment / 2);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(reward.text, radius * 0.6, 0);
+            ctx.restore();
+        });
+
+        // Стрелка
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.fillStyle = reward.color;
+        ctx.moveTo(centerX, 30);
+        ctx.lineTo(centerX - 15, 60);
+        ctx.lineTo(centerX + 15, 60);
+        ctx.closePath();
+        ctx.fillStyle = '#000';
         ctx.fill();
-        ctx.lineWidth = 2;
         ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
         ctx.stroke();
+    }
 
-        // Текст
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + anglePerSegment / 2);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(reward.text, radius * 0.6, 0);
-        ctx.restore();
+    function animate() {
+        if (spinning) {
+            currentAngle += spinVelocity;
+            spinVelocity *= 0.985; // трение
+            if (spinVelocity < 0.002) {
+                spinning = false;
+                spinButton.disabled = false;
+                showResult();
+            }
+        }
+        drawWheel();
+        requestAnimationFrame(animate);
+    }
+
+    function showResult() {
+        const normalizedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
+        const index = Math.floor(normalizedAngle / anglePerSegment);
+        const reward = rewards[index];
+        alert('Выпало: ' + reward.text);
+    }
+
+    spinButton.addEventListener('click', () => {
+        if (!spinning) {
+            spinning = true;
+            spinVelocity = Math.random() * 0.3 + 0.25; // скорость от 0.25 до 0.55
+            spinButton.disabled = true;
+        }
     });
 
-    // Стрелка
-    ctx.beginPath();
-    ctx.moveTo(centerX, 30);
-    ctx.lineTo(centerX - 15, 60);
-    ctx.lineTo(centerX + 15, 60);
-    ctx.closePath();
-    ctx.fillStyle = '#000';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-}
+    drawWheel();
+    animate();
+</script>
+
+</body>
+</html>
