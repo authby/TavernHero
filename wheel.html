@@ -81,15 +81,18 @@
 
     function drawWheel() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
         const baseRadius = canvas.width / 2 - 20;
         const extendedRadius = baseRadius + 20;
-
+    
+        // Сдвигаем вниз, чтобы освободить место для стрелки
+        const centerY = canvas.height / 2 + 20;
+    
         rewards.forEach((reward, index) => {
             const startAngle = currentAngle + anglePerSegment * index;
             const endAngle = startAngle + anglePerSegment;
-
+    
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
             ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
@@ -98,7 +101,7 @@
             ctx.lineWidth = 2;
             ctx.strokeStyle = '#fff';
             ctx.stroke();
-
+    
             // Текст
             ctx.save();
             ctx.translate(centerX, centerY);
@@ -110,7 +113,7 @@
             ctx.fillText(reward.text, baseRadius * 0.6, 0);
             ctx.restore();
         });
-
+    
         // Стрелка (вверху)
         ctx.beginPath();
         ctx.moveTo(centerX, centerY - (extendedRadius + 10));
