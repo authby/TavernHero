@@ -143,7 +143,7 @@
 
     function showResult() {
         // Смещение на -π/2 (стрелка вверху)
-        const correctedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI)) + Math.PI / 2) % (2 * Math.PI);
+        const correctedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI)) - Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
         const index = Math.floor(correctedAngle / anglePerSegment);
         const reward = rewards[index];
         alert('Выпало: ' + reward.text);
