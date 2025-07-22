@@ -124,7 +124,19 @@
     function normalizeAngle(angle) {
       return angle - Math.floor(angle / (2 * Math.PI)) * (2 * Math.PI);
     }    
-        
+
+    function getSectorIndexByAngle(angle) {
+      const pointerAngle = normalizeAngle(angle + Math.PI); // Указатель внизу (180°)
+      for (let i = 0; i < rewards.length; i++) {
+        const start = normalizeAngle(anglePerSegment * i);
+        const end = normalizeAngle(start + anglePerSegment);
+        if (start <= pointerAngle && pointerAngle < end) {
+          return i;
+        }
+      }
+      return -1; // Если ни один сектор не найден
+    }
+    
     function drawWheel(highlightIndex = null) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const centerX = canvas.width / 2;
@@ -139,7 +151,7 @@
         const start = normalizeAngle(anglePerSegment * i - normalizedCurrentAngle);
         const end = normalizeAngle(start + anglePerSegment);
     
-        console.log(`Drawing segment ${i}: Start Angle: ${start}, End Angle: ${end}`);
+        console.log(`Segment ${i}: Start Angle: ${start}, End Angle: ${end}`);
     
         // Рисуем сектор
         ctx.beginPath();
@@ -221,15 +233,26 @@
 
     function showReward() {
       document.getElementById("pointer").classList.remove("animate");
-      popup.textContent = rewards[resultIndex].text;
-      popup.style.opacity = "1";
-
-      setTimeout(() => {
-        Telegram.WebApp.sendData(JSON.stringify({ type: rewards[resultIndex].type, value: rewards[resultIndex].value }));
-      }, 500);
-
-      setTimeout(() => popup.style.opacity = "0", 2000);
-      setTimeout(() => Telegram.WebApp.close(), 2500);
+    
+      // Определяем индекс сектора под указателем
+      const sectorIndex = getSectorIndexByAngle(currentAngle);
+      console.log(`Sector under pointer: ${sectorIndex}`);
+    
+      if (sectorIndex >= 0) {
+        popup.textContent = rewards[sectorIndex].text;
+        popup.style.opacity = "1";
+    
+        setTimeout(() => {
+          Telegram.WebApp.sendData(JSON.stringify({ type: rewards[sectorIndex].type, value: rewards[sectorIndex].value }));
+        }, 500);
+    
+        setTimeout(() => popup.style.opacity = "0", 2000);
+        setTimeout(() => Telegram.WebApp.close(), 2500);
+      } else {
+        console.error("Failed to determine the sector under the pointer.");
+        popup.textContent = "Ошибка: не удалось определить сектор";
+        popup.style.opacity = "1";
+      }
     }
 
     function resizeCanvas() {
