@@ -248,9 +248,6 @@
       const targetAngleInSector = Math.random() * (maxAngle - minAngle) + minAngle;
       const pointerAdjustment = Math.PI / 2;
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - targetAngleInSector;
-      console.log("totalRotation (radians):", totalRotation);
-      console.log("anglePerSegment (radians):", anglePerSegment);
-      console.log("targetAngleInSector (radians):", targetAngleInSector);
     
       popup.style.opacity = "0";
       requestAnimationFrame(animateSpin);
@@ -269,7 +266,7 @@
           }));
         }
         Telegram.WebApp.close();
-      }, 2500);
+      }, 1000);
     }
 
     // Добавляем обработчик сенсорных событий
