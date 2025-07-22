@@ -127,13 +127,25 @@
 
     function getSectorIndexByAngle(angle) {
       const pointerAngle = normalizeAngle(angle + Math.PI); // Указатель внизу (180°)
+      console.log(`Pointer Angle: ${pointerAngle}`);
+    
       for (let i = 0; i < rewards.length; i++) {
         const start = normalizeAngle(anglePerSegment * i);
         const end = normalizeAngle(start + anglePerSegment);
-        if (start <= pointerAngle && pointerAngle < end) {
-          return i;
+    
+        // Обработка случая, когда сектор пересекает границу [0, 2π)
+        if (end > start) {
+          if (start <= pointerAngle && pointerAngle < end) {
+            return i;
+          }
+        } else {
+          // Сектор пересекает границу [0, 2π)
+          if (pointerAngle >= start || pointerAngle < end) {
+            return i;
+          }
         }
       }
+    
       return -1; // Если ни один сектор не найден
     }
     
