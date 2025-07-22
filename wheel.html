@@ -127,18 +127,19 @@
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
-      const extendedRadius = baseRadius + 20;
     
       rewards.forEach((reward, i) => {
-        const start = currentAngle + anglePerSegment * i;
+        const start = anglePerSegment * i - currentAngle;
         const end = start + anglePerSegment;
     
+        // Рисуем сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, extendedRadius, start, end);
+        ctx.arc(centerX, centerY, baseRadius, start, end);
         ctx.fillStyle = reward.color;
         ctx.fill();
     
+        // Выделение текущего сегмента
         if (highlightIndex === i) {
           ctx.strokeStyle = "#FFD700";
           ctx.lineWidth = 6;
@@ -147,7 +148,8 @@
           ctx.lineWidth = 2;
         }
         ctx.stroke();
-        
+    
+        // Текст внутри сегмента
         const midAngle = start + anglePerSegment / 2;
         ctx.save();
         ctx.translate(centerX, centerY);
@@ -155,21 +157,8 @@
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#fff";
-        ctx.font = `bold ${canvas.width / 30}px "Segoe UI Emoji", Arial`;
-    
-        const label = reward.text;
-        const isEmoji = /^[^\w\s]+$/.test(label);
-    
-        if (isEmoji) {
-          ctx.setTransform(1, 0, 0, 1,
-            centerX + baseRadius * 0.7 * Math.cos(midAngle),
-            centerY + baseRadius * 0.7 * Math.sin(midAngle)
-          );
-          ctx.fillText(label, 0, 0);
-        } else {
-          ctx.fillText(label, baseRadius * 0.7, 0);
-        }
-    
+        ctx.font = `bold ${canvas.width / 30}px Arial`;
+        ctx.fillText(reward.text, baseRadius * 0.7, 0);
         ctx.restore();
       });
     }
