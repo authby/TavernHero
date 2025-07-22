@@ -18,22 +18,22 @@
       justify-content: center;
       align-items: center;
     }
-    
+
     #wheel-container {
       position: relative;
       width: min(90vw, 90vh);
       height: min(90vw, 90vh);
     }
-    
+
     canvas {
       width: 100%;
       height: 100%;
-      border: 4px solid #fff;
+      border: 2px solid #fff;
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
       background: #fff;
     }
-    
+
     #pointer {
       width: 0;
       height: 0;
@@ -41,12 +41,21 @@
       top: 100%;
       left: 50%;
       transform: translateX(-50%) rotate(180deg);
-      border-left: 25px solid transparent;
-      border-right: 25px solid transparent;
-      border-top: 40px solid #000;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 30px solid #000;
       z-index: 10;
     }
-    
+
+    #pointer.animate {
+      animation: pointer-updown 0.6s ease-in-out infinite;
+    }
+
+    @keyframes pointer-updown {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
+      50% { transform: translateX(-50%) translateY(-8px) rotate(180deg); }
+    }
+
     #rewardPopup {
       position: absolute;
       top: 50%;
@@ -54,9 +63,9 @@
       transform: translate(-50%, -50%);
       background: rgba(0, 0, 0, 0.85);
       color: #fff;
-      padding: 20px 30px;
+      padding: 16px 24px;
       border-radius: 12px;
-      font-size: clamp(16px, 4vw, 24px);
+      font-size: clamp(16px, 4vw, 22px);
       font-weight: bold;
       pointer-events: none;
       opacity: 0;
@@ -64,17 +73,8 @@
       z-index: 100;
       text-align: center;
     }
-    
-    @keyframes pointer-updown {
-      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
-      50% { transform: translateX(-50%) translateY(-10px) rotate(180deg); }
-    }
-    
-    #pointer.animate {
-      animation: pointer-updown 0.6s ease-in-out infinite;
-    }
   </style>
-  <script src="https://telegram.org/js/telegram-web-app.js  "></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div id="wheel-container">
@@ -133,7 +133,6 @@
         const startAngle = currentAngle + i * anglePerSegment;
         const endAngle = startAngle + anglePerSegment;
 
-        // Draw segment
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -141,23 +140,16 @@
         ctx.fillStyle = rewards[i].color;
         ctx.fill();
 
-        // Highlight selected segment
-        if (highlightIndex === i) {
-          ctx.lineWidth = 6;
-          ctx.strokeStyle = '#ffd700';
-        } else {
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = '#fff';
-        }
+        ctx.lineWidth = highlightIndex === i ? 3 : 1;
+        ctx.strokeStyle = highlightIndex === i ? '#FFD700' : '#fff';
         ctx.stroke();
 
-        // Draw text
         const midAngle = startAngle + anglePerSegment / 2;
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(midAngle);
         ctx.fillStyle = '#fff';
-        ctx.font = `${radius / 10}px Arial`;
+        ctx.font = `${Math.max(12, radius / 16)}px Arial`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
         ctx.fillText(rewards[i].text, radius - 10, 0);
@@ -169,9 +161,9 @@
       pointer.classList.add("animate");
       if (!animationStartTime) animationStartTime = timestamp;
       const elapsed = (timestamp - animationStartTime) / 1000;
-      const duration = 4; // seconds
+      const duration = 4;
       const t = Math.min(elapsed / duration, 1);
-      const easing = 1 - Math.pow(1 - t, 3); // cubic ease out
+      const easing = 1 - Math.pow(1 - t, 3);
 
       currentAngle = totalRotation * easing;
       drawWheel(t === 1 ? resultIndex : null);
@@ -191,57 +183,46 @@
         return;
       }
 
-      // Сбрасываем угол для корректного расчёта
       currentAngle = 0;
       animationStartTime = null;
       resultIndex = index;
 
-      const extraTurns = 7; // фиксированное количество полных оборотов
-
-      // Вычисляем угол до центра нужного сегмента
+      const extraTurns = 7;
       const segmentAngle = anglePerSegment * index;
       const centerSegment = segmentAngle + anglePerSegment / 2;
-      const pointerAdjustment = Math.PI / 2; // 90 градусов — стрелка внизу
+      const pointerAdjustment = Math.PI / 2;
 
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment;
 
-      // Запускаем анимацию
-      requestAnimationFrame(animateSpin);
-
-      // Скрываем подсказку перед запуском
       popup.style.opacity = "0";
+      requestAnimationFrame(animateSpin);
     }
 
     function showReward() {
       popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
 
+      setTimeout(() => popup.style.opacity = "0", 2000);
       setTimeout(() => {
-        popup.style.opacity = "0";
-      }, 2000);
+        if (window.Telegram?.WebApp?.sendData) {
+          Telegram.WebApp.sendData(JSON.stringify({
+            type: rewards[resultIndex].type,
+            value: rewards[resultIndex].value
+          }));
+        }
+        Telegram.WebApp.close();
+      }, 2500);
     }
 
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // Читаем параметры из URL
     const urlParams = new URLSearchParams(window.location.search);
-    const indexParam = urlParams.get("index");
-    const typeParam = urlParams.get("type");
-    const valueParam = urlParams.get("value");
-    const textParam = urlParams.get("text");
-    
-    // Преобразуем index в число и проверяем валидность
-    const index = parseInt(indexParam, 10);
-    
-    if (!isNaN(index) && index >= 0 && index < rewards.length) {
-      spinToIndex(index);
-    
-      // Можно дополнительно обработать type, value, text если нужно
-      console.log(`Received index=${index}, type=${typeParam}, value=${valueParam}, text=${textParam}`);
+    const indexParam = parseInt(urlParams.get("index"), 10);
+    if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
+      spinToIndex(indexParam);
     } else {
-      // Если index невалидный — покажем ошибку
-      popup.textContent = "Ошибка: неверный индекс в параметрах URL";
+      popup.textContent = "Ошибка: неверный индекс";
       popup.style.opacity = "1";
     }
   </script>
