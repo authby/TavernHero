@@ -202,7 +202,7 @@
       const extraTurns = 5 + Math.random() * 2;
       const targetOffset = Math.PI; // стрелка снизу, значит нужно довернуть на 180°
       const baseRotation = 2 * Math.PI * extraTurns;
-      const rewardOffset = index * anglePerSegment + anglePerSegment / 2;
+      const rewardOffset = index * anglePerSegment - anglePerSegment / 2;
     
       totalRotation = baseRotation + targetOffset + rewardOffset;
     
