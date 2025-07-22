@@ -249,6 +249,7 @@
       // Определяем индекс сектора под указателем
       const sectorIndex = getSectorIndexByAngle(currentAngle);
       console.log(`Sector under pointer: ${sectorIndex}`);
+      console.log(`Current Angle: ${currentAngle}, Pointer Angle: ${normalizeAngle(currentAngle + Math.PI)}`);
     
       if (sectorIndex >= 0) {
         popup.textContent = rewards[sectorIndex].text;
