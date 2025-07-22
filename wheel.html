@@ -213,11 +213,11 @@
 
       setTimeout(() => {
         Telegram.WebApp.sendData(JSON.stringify({ reward: reward.text }));
-      }, 2000);
+      }, 500);
       
       setTimeout(() => {
         Telegram.WebApp.close();
-      }, 7000);  // closing 5 seconds after sending data
+      }, 5000);  // closing 5 seconds after sending data
     }
 
     spinButton.addEventListener('click', () => {
