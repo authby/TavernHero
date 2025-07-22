@@ -6,25 +6,25 @@
   <title>Колесо фортуны</title>
   <meta name="theme-color" content="#222" />
   <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      width: 100vw;
+    html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
+      width: 100%;
       background: linear-gradient(135deg, #222, #333);
       font-family: Arial, sans-serif;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
+
     #wheel-container {
-      width: 80vw;
-      max-width: 500px;
-      aspect-ratio: 1 / 1;
       position: relative;
+      width: min(90vw, 90vh);
+      height: min(90vw, 90vh);
     }
+
     canvas {
       width: 100%;
       height: 100%;
@@ -33,18 +33,20 @@
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
       background: #fff;
     }
+
     #pointer {
       width: 0;
       height: 0;
       position: absolute;
-      bottom: -30px;
+      top: -40px;
       left: 50%;
       transform: translateX(-50%);
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-bottom: 40px solid #000;
-      animation: none;
+      border-top: 40px solid #000;
+      z-index: 10;
     }
+
     #pointer::after {
       content: '';
       position: absolute;
@@ -54,9 +56,10 @@
       height: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-bottom: 40px solid #000;
+      border-top: 40px solid #000;
       filter: drop-shadow(0 0 4px white);
     }
+
     #rewardPopup {
       position: absolute;
       top: 50%;
@@ -66,7 +69,7 @@
       color: #fff;
       padding: 20px 30px;
       border-radius: 12px;
-      font-size: 22px;
+      font-size: clamp(16px, 4vw, 24px);
       font-weight: bold;
       pointer-events: none;
       opacity: 0;
@@ -115,7 +118,8 @@
     const anglePerSegment = (2 * Math.PI) / rewards.length;
     let currentAngle = 0;
     let targetAngle = 0;
-    let spinning = false;
+    let totalRotation = 0;
+    let animationStartTime = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const index = parseInt(urlParams.get("index"));
@@ -156,7 +160,10 @@
         const isEmoji = /^[^\w\s]+$/.test(label);
 
         if (isEmoji) {
-          ctx.setTransform(1, 0, 0, 1, centerX + baseRadius * 0.7 * Math.cos(midAngle), centerY + baseRadius * 0.7 * Math.sin(midAngle));
+          ctx.setTransform(1, 0, 0, 1,
+            centerX + baseRadius * 0.7 * Math.cos(midAngle),
+            centerY + baseRadius * 0.7 * Math.sin(midAngle)
+          );
           ctx.fillText(label, 0, 0);
         } else {
           ctx.fillText(label, baseRadius * 0.7, 0);
@@ -166,28 +173,29 @@
       });
     }
 
-    let animationStartTime = null;
-    let totalRotation = 0;
-    
     function animateSpin(timestamp) {
       if (!animationStartTime) animationStartTime = timestamp;
-      const elapsed = (timestamp - animationStartTime) / 1000; // в секундах
-    
-      const duration = 4; // общая длительность вращения (секунды)
-      const t = Math.min(elapsed / duration, 1); // [0..1]
-      
-      // easeOutCubic: быстро в начале, медленно в конце
+      const elapsed = (timestamp - animationStartTime) / 1000;
+
+      const duration = 4;
+      const t = Math.min(elapsed / duration, 1);
       const easing = 1 - Math.pow(1 - t, 3);
       currentAngle = totalRotation * easing;
-    
+
       drawWheel();
-    
+
       if (t < 1) {
         requestAnimationFrame(animateSpin);
       } else {
-        spinning = false;
         showReward();
       }
+    }
+
+    function spinToIndex(index) {
+      const extraTurns = 5 + Math.random() * 2;
+      totalRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2;
+      animationStartTime = null;
+      requestAnimationFrame(animateSpin);
     }
 
     function showReward() {
@@ -195,25 +203,11 @@
       popup.style.opacity = "1";
 
       setTimeout(() => {
-        Telegram.WebApp.sendData(JSON.stringify({
-          type: type,
-          value: value
-        }));
+        Telegram.WebApp.sendData(JSON.stringify({ type, value }));
       }, 500);
 
       setTimeout(() => popup.style.opacity = "0", 2000);
       setTimeout(() => Telegram.WebApp.close(), 2500);
-    }
-
-    function spinToIndex(index) {
-      const extraTurns = 5 + Math.random() * 2;
-      const targetRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2;
-    
-      totalRotation = targetRotation;
-      animationStartTime = null;
-      spinning = true;
-    
-      requestAnimationFrame(animateSpin);
     }
 
     function resizeCanvas() {
@@ -225,7 +219,6 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // Автоматически запускаем вращение, если index указан
     if (!isNaN(index)) {
       spinToIndex(index);
     }
