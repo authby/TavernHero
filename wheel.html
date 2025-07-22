@@ -2,57 +2,49 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Колесо фортуны</title>
-  <meta name="theme-color" content="#222" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Колесо фортуны - фиксированная остановка</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
+      margin: 0; padding: 0; height: 100%; width: 100%;
+      display: flex; justify-content: center; align-items: center;
       background: linear-gradient(135deg, #222, #333);
       font-family: Arial, sans-serif;
       overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
     }
-
     #wheel-container {
       position: relative;
       width: min(90vw, 90vh);
       height: min(90vw, 90vh);
     }
-
     canvas {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       border: 4px solid #fff;
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
       background: #fff;
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
     }
-    
     #pointer {
-      width: 0;
-      height: 0;
       position: absolute;
       top: 100%;
       left: 50%;
       transform: translateX(-50%) rotate(180deg);
+      width: 0; height: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
       border-top: 40px solid #000;
       z-index: 10;
+      animation: pointer-updown 0.6s ease-in-out infinite;
     }
-
+    @keyframes pointer-updown {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
+      50% { transform: translateX(-50%) translateY(-10px) rotate(180deg); }
+    }
     #rewardPopup {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0,0,0,0.85);
       color: #fff;
       padding: 20px 30px;
       border-radius: 12px;
@@ -64,172 +56,38 @@
       z-index: 100;
       text-align: center;
     }
-    @keyframes pointer-updown {
-      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
-      50% { transform: translateX(-50%) translateY(-10px) rotate(180deg); }
-    }
-    
-    #pointer.animate {
-      animation: pointer-updown 0.6s ease-in-out infinite;
-    }
   </style>
-  <script src="https://telegram.org/js/telegram-web-app.js  "></script>
 </head>
 <body>
   <div id="wheel-container">
-    <div id="pointer"></div>
     <canvas id="wheel"></canvas>
+    <div id="pointer"></div>
   </div>
   <div id="rewardPopup"></div>
 
   <script>
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand();
-
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
+    const pointer = document.getElementById("pointer");
     const popup = document.getElementById("rewardPopup");
 
     const rewards = [
-      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#C62828' },
-      { type: 'exp_gain', value: 12, text: '+12 опыта', color: '#388E3C' },
-      { type: 'exp_loss', value: 6, text: '-6 опыта', color: '#E57373' },
-      { type: 'item', value: 'legendary', text: '🎁', color: '#FFD700' },
-      { type: 'exp_loss', value: 3, text: '-3 опыта', color: '#EF9A9A' },
-      { type: 'premium', value: 3, text: 'Премиум аккаунт (3 дня)', color: '#6A1B9A' },
-      { type: 'exp_loss', value: 3, text: '-3 опыта', color: '#EF9A9A' },
-      { type: 'raid', value: 'clear', text: 'Сброс таймера /raid', color: '#1565C0' },
-      { type: 'exp_loss', value: 24, text: '-24 опыта', color: '#B71C1C' },
-      { type: 'exp_gain', value: 6, text: '+6 опыта', color: '#81C784' },
-      { type: 'none', value: 'none', text: 'Повезёт в следующий раз', color: '#D32F2F' },
-      { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#F44336' },
-      { type: 'item', value: 'epic', text: '🎁', color: '#8E24AA' },
-      { type: 'exp_loss', value: 18, text: '-18 опыта', color: '#AD1457' },
-      { type: 'exp_gain', value: 30, text: '+30 опыта', color: '#2E7D32' },
-      { type: 'exp_loss', value: 21, text: '-21 опыта', color: '#E53935' },
-      { type: 'exp_gain', value: 24, text: '+24 опыта', color: '#43A047' },
+      { text: '+10 XP', color: '#4caf50' },
+      { text: '-5 XP', color: '#f44336' },
+      { text: '🎁 Item', color: '#ff9800' },
+      { text: '+20 XP', color: '#388e3c' },
+      { text: 'Try again', color: '#9e9e9e' },
+      { text: 'Premium 1 day', color: '#673ab7' },
+      { text: '-10 XP', color: '#d32f2f' },
+      { text: 'Bonus!', color: '#2196f3' },
     ];
 
-    const anglePerSegment = (2 * Math.PI) / rewards.length;
+    const segmentCount = rewards.length;
+    const anglePerSegment = (2 * Math.PI) / segmentCount;
     let currentAngle = 0;
-    let targetAngle = 0;
     let totalRotation = 0;
     let animationStartTime = null;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const index = parseInt(urlParams.get("index"));
-    const type = urlParams.get("type");
-    const value = urlParams.get("value");
-    const text = urlParams.get("text");
-
-    function drawWheel(highlightIndex = null) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const baseRadius = canvas.width / 2 - 20;
-      const extendedRadius = baseRadius + 20;
-    
-      rewards.forEach((reward, i) => {
-        const start = currentAngle + anglePerSegment * i;
-        const end = start + anglePerSegment;
-    
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, extendedRadius, start, end);
-        ctx.fillStyle = reward.color;
-        ctx.fill();
-    
-        if (highlightIndex === i) {
-          ctx.strokeStyle = "#FFD700";
-          ctx.lineWidth = 6;
-        } else {
-          ctx.strokeStyle = "#fff";
-          ctx.lineWidth = 2;
-        }
-        ctx.stroke();
-        
-        ctx.fillStyle = "#000";
-        ctx.font = `bold ${canvas.width / 20}px Arial`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(`Index: ${resultIndex !== null ? resultIndex : "-"}`, canvas.width / 2, canvas.height / 2);
-    
-        const midAngle = start + anglePerSegment / 2;
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(midAngle);
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#fff";
-        ctx.font = `bold ${canvas.width / 30}px "Segoe UI Emoji", Arial`;
-    
-        const label = reward.text;
-        const isEmoji = /^[^\w\s]+$/.test(label);
-    
-        if (isEmoji) {
-          ctx.setTransform(1, 0, 0, 1,
-            centerX + baseRadius * 0.7 * Math.cos(midAngle),
-            centerY + baseRadius * 0.7 * Math.sin(midAngle)
-          );
-          ctx.fillText(label, 0, 0);
-        } else {
-          ctx.fillText(label, baseRadius * 0.7, 0);
-        }
-    
-        ctx.restore();
-      });
-    }
-
-    function animateSpin(timestamp) {
-      if (!animationStartTime) animationStartTime = timestamp;
-      const elapsed = (timestamp - animationStartTime) / 1000;
-      const duration = 4;
-      const t = Math.min(elapsed / duration, 1);
-      const easing = 1 - Math.pow(1 - t, 3);
-      currentAngle = totalRotation * easing;
-    
-      drawWheel(t === 1 ? resultIndex : null);
-    
-      if (t < 1) {
-        requestAnimationFrame(animateSpin);
-      } else {
-        showReward();
-      }
-    }
-
     let resultIndex = null;
-    
-    function spinToIndex(index) {
-      console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
-      const pointer = document.getElementById("pointer");
-      pointer.classList.remove("animate");
-      void pointer.offsetWidth;
-      pointer.classList.add("animate");
-    
-      const extraTurns = 5 + Math.random() * 2; // Дополнительные обороты
-      const segmentAngle = anglePerSegment * index; // Угол до начала сегмента
-      const centerSegment = segmentAngle + anglePerSegment / 2; // Центр сегмента
-      const pointerAdjustment = Math.PI; // Стрелка внизу (180°)
-      totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment - currentAngle;
-      console.log(`totalRotation: ${totalRotation}`);
-    
-      animationStartTime = null;
-      resultIndex = index;
-      requestAnimationFrame(animateSpin);
-    }
-
-    function showReward() {
-      document.getElementById("pointer").classList.remove("animate");
-      popup.textContent = rewards[resultIndex].text;
-      popup.style.opacity = "1";
-    
-      setTimeout(() => {
-        Telegram.WebApp.sendData(JSON.stringify({ type: rewards[resultIndex].type, value: rewards[resultIndex].value }));
-      }, 500);
-    
-      setTimeout(() => popup.style.opacity = "0", 2000);
-      setTimeout(() => Telegram.WebApp.close(), 2500);
-    }
 
     function resizeCanvas() {
       canvas.width = canvas.offsetWidth;
@@ -237,18 +95,108 @@
       drawWheel();
     }
 
+    function drawWheel(highlightIndex = null) {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = canvas.width / 2 - 20;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < segmentCount; i++) {
+        const startAngle = currentAngle + i * anglePerSegment;
+        const endAngle = startAngle + anglePerSegment;
+
+        // Draw segment
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = rewards[i].color;
+        ctx.fill();
+
+        // Highlight selected segment
+        if (highlightIndex === i) {
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = '#ffd700';
+        } else {
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#fff';
+        }
+        ctx.stroke();
+
+        // Draw text
+        const midAngle = startAngle + anglePerSegment / 2;
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(midAngle);
+        ctx.fillStyle = '#fff';
+        ctx.font = `${radius / 10}px Arial`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(rewards[i].text, radius - 10, 0);
+        ctx.restore();
+      }
+    }
+
+    function animateSpin(timestamp) {
+      if (!animationStartTime) animationStartTime = timestamp;
+      const elapsed = (timestamp - animationStartTime) / 1000;
+      const duration = 4; // seconds
+      const t = Math.min(elapsed / duration, 1);
+      const easing = 1 - Math.pow(1 - t, 3); // cubic ease out
+
+      currentAngle = totalRotation * easing;
+      drawWheel(t === 1 ? resultIndex : null);
+
+      if (t < 1) {
+        requestAnimationFrame(animateSpin);
+      } else {
+        showReward();
+      }
+    }
+
+    function spinToIndex(index) {
+      if (index < 0 || index >= segmentCount) {
+        popup.textContent = "Invalid index";
+        popup.style.opacity = "1";
+        return;
+      }
+
+      // Сбрасываем угол для корректного расчёта
+      currentAngle = 0;
+      animationStartTime = null;
+      resultIndex = index;
+
+      const extraTurns = 7; // фиксированное количество полных оборотов
+
+      // Вычисляем угол до центра нужного сегмента
+      const segmentAngle = anglePerSegment * index;
+      const centerSegment = segmentAngle + anglePerSegment / 2;
+      const pointerAdjustment = Math.PI; // стрелка смотрит вниз (180°)
+
+      totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment;
+
+      // Запускаем анимацию
+      requestAnimationFrame(animateSpin);
+
+      // Скрываем подсказку перед запуском
+      popup.style.opacity = "0";
+    }
+
+    function showReward() {
+      popup.textContent = rewards[resultIndex].text;
+      popup.style.opacity = "1";
+
+      setTimeout(() => {
+        popup.style.opacity = "0";
+      }, 2000);
+    }
+
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    console.log(`Received index: ${index}, type: ${type}, value: ${value}, text: ${text}`);
-    if (isNaN(index) || index < 0 || index >= rewards.length) {
-      console.error(`Invalid reward index: ${index}`);
-      popup.textContent = "Ошибка: неверный индекс награды";
-      popup.style.opacity = "1";
-    } else {
-      spinToIndex(index);
-    }
-    
+    // Запуск с фиксированным индексом 2 (третья награда)
+    spinToIndex(2);
   </script>
 </body>
 </html>
