@@ -257,7 +257,7 @@
         Telegram.WebApp.sendData(JSON.stringify({ type: reward.type, value: reward.value }));
       }, 500);
     
-      // Скрыть всплывающий текст через 4 сек
+      // Скрыть всплывающий текст через 2 сек
       setTimeout(() => {
         popup.style.opacity = '0';
       }, 2000);
@@ -265,7 +265,7 @@
       // Закрыть WebApp
       setTimeout(() => {
         Telegram.WebApp.close();
-      }, 4500);
+      }, 2500);
     }
 
     spinButton.addEventListener('click', () => {
