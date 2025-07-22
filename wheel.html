@@ -64,13 +64,13 @@
       z-index: 100;
       text-align: center;
     }
-    @keyframes pointer-wiggle {
-      0%, 100% { transform: translateX(-50%) rotate(180deg) rotate(0deg); }
-      50% { transform: translateX(-50%) rotate(180deg) rotate(10deg); }
+    @keyframes pointer-updown {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
+      50% { transform: translateX(-50%) translateY(-10px) rotate(180deg); }
     }
     
     #pointer.animate {
-      animation: pointer-wiggle 0.4s ease-in-out infinite;
+      animation: pointer-updown 0.6s ease-in-out infinite;
     }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
