@@ -198,7 +198,7 @@
       // Вычисляем угол до центра нужного сегмента
       const segmentAngle = anglePerSegment * index;
       const centerSegment = segmentAngle + anglePerSegment / 2;
-      const pointerAdjustment = Math.PI; // стрелка смотрит вниз (180°)
+      const pointerAdjustment = Math.PI / 2; // 90 градусов — стрелка внизу
 
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment;
 
