@@ -166,23 +166,28 @@
       });
     }
 
+    let animationStartTime = null;
+    let totalRotation = 0;
+    
     function animateSpin(timestamp) {
-      if (!spinning) return;
-
-      const delta = (targetAngle - currentAngle + Math.PI * 10) % (Math.PI * 2);
-      const step = 0.05;
-
-      if (Math.abs(delta) < 0.01) {
-        currentAngle = targetAngle;
-        spinning = false;
-        drawWheel();
-        showReward();
-        return;
-      }
-
-      currentAngle += step;
+      if (!animationStartTime) animationStartTime = timestamp;
+      const elapsed = (timestamp - animationStartTime) / 1000; // в секундах
+    
+      const duration = 4; // общая длительность вращения (секунды)
+      const t = Math.min(elapsed / duration, 1); // [0..1]
+      
+      // easeOutCubic: быстро в начале, медленно в конце
+      const easing = 1 - Math.pow(1 - t, 3);
+      currentAngle = totalRotation * easing;
+    
       drawWheel();
-      requestAnimationFrame(animateSpin);
+    
+      if (t < 1) {
+        requestAnimationFrame(animateSpin);
+      } else {
+        spinning = false;
+        showReward();
+      }
     }
 
     function showReward() {
@@ -201,10 +206,14 @@
     }
 
     function spinToIndex(index) {
-      const randomTurns = 5 + Math.random() * 2;
-      targetAngle = (Math.PI * 2) * randomTurns - (index * anglePerSegment) - anglePerSegment / 2;
+      const extraTurns = 5 + Math.random() * 2;
+      const targetRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2;
+    
+      totalRotation = targetRotation;
+      animationStartTime = null;
       spinning = true;
-      animateSpin();
+    
+      requestAnimationFrame(animateSpin);
     }
 
     function resizeCanvas() {
