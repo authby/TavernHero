@@ -33,31 +33,18 @@
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
       background: #fff;
     }
-
+    
     #pointer {
       width: 0;
       height: 0;
       position: absolute;
-      bottom: -30px;
+      top: 100%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) rotate(180deg);
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
-      border-bottom: 40px solid #000;
+      border-top: 40px solid #000;
       z-index: 10;
-    }
-
-    #pointer::after {
-      content: '';
-      position: absolute;
-      left: -25px;
-      top: 0;
-      width: 0;
-      height: 0;
-      border-left: 25px solid transparent;
-      border-right: 25px solid transparent;
-      border-bottom: 40px solid #000;
-      filter: drop-shadow(0 0 4px white);
     }
 
     #rewardPopup {
@@ -76,6 +63,14 @@
       transition: opacity 0.3s ease;
       z-index: 100;
       text-align: center;
+    }
+    @keyframes pointer-wiggle {
+      0%, 100% { transform: translateX(-50%) rotate(180deg) rotate(0deg); }
+      50% { transform: translateX(-50%) rotate(180deg) rotate(10deg); }
+    }
+    
+    #pointer.animate {
+      animation: pointer-wiggle 0.4s ease-in-out infinite;
     }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -127,26 +122,32 @@
     const value = urlParams.get("value");
     const text = urlParams.get("text");
 
-    function drawWheel() {
+    function drawWheel(highlightIndex = null) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
       const extendedRadius = baseRadius + 20;
-
+    
       rewards.forEach((reward, i) => {
         const start = currentAngle + anglePerSegment * i;
         const end = start + anglePerSegment;
-
+    
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, extendedRadius, start, end);
         ctx.fillStyle = reward.color;
         ctx.fill();
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
+    
+        if (highlightIndex === i) {
+          ctx.strokeStyle = "#FFD700";
+          ctx.lineWidth = 6;
+        } else {
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 2;
+        }
         ctx.stroke();
-
+    
         const midAngle = start + anglePerSegment / 2;
         ctx.save();
         ctx.translate(centerX, centerY);
@@ -155,10 +156,10 @@
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#fff";
         ctx.font = `bold ${canvas.width / 30}px "Segoe UI Emoji", Arial`;
-
+    
         const label = reward.text;
         const isEmoji = /^[^\w\s]+$/.test(label);
-
+    
         if (isEmoji) {
           ctx.setTransform(1, 0, 0, 1,
             centerX + baseRadius * 0.7 * Math.cos(midAngle),
@@ -168,7 +169,7 @@
         } else {
           ctx.fillText(label, baseRadius * 0.7, 0);
         }
-
+    
         ctx.restore();
       });
     }
@@ -176,14 +177,13 @@
     function animateSpin(timestamp) {
       if (!animationStartTime) animationStartTime = timestamp;
       const elapsed = (timestamp - animationStartTime) / 1000;
-
       const duration = 4;
       const t = Math.min(elapsed / duration, 1);
       const easing = 1 - Math.pow(1 - t, 3);
       currentAngle = totalRotation * easing;
-
-      drawWheel();
-
+    
+      drawWheel(t === 1 ? resultIndex : null);
+    
       if (t < 1) {
         requestAnimationFrame(animateSpin);
       } else {
@@ -191,14 +191,19 @@
       }
     }
 
+    let resultIndex = null;
+    
     function spinToIndex(index) {
+      document.getElementById("pointer").classList.add("animate");
       const extraTurns = 5 + Math.random() * 2;
       totalRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2 + Math.PI;
       animationStartTime = null;
+      resultIndex = index;
       requestAnimationFrame(animateSpin);
     }
 
     function showReward() {
+      document.getElementById("pointer").classList.remove("animate");
       popup.textContent = decodeURIComponent(text || "?");
       popup.style.opacity = "1";
 
