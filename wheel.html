@@ -242,9 +242,12 @@
       resultIndex = index;
     
       const extraTurns = 5 + Math.floor(Math.random() * 3);
+      const segmentAngle = anglePerSegment * index;
       const centerSegment = segmentAngle + anglePerSegment / 2;
       const pointerAdjustment = -Math.PI / 2;
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment;
+      console.log("totalRotation (radians):", totalRotation);
+      console.log("centerSegment (radians):", centerSegment);
     
       popup.style.opacity = "0";
       requestAnimationFrame(animateSpin);
