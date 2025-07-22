@@ -232,22 +232,23 @@
 
     function spinToIndex(index) {
       if (index < 0 || index >= segmentCount) {
-        popup.textContent = "Неверный индекс";
+        popup.textContent = "Неверный стартовый индекс";
         popup.style.opacity = "1";
         return;
       }
-
+    
       currentAngle = 0;
       animationStartTime = null;
       resultIndex = index;
-
+    
       const extraTurns = 7;
       const segmentAngle = anglePerSegment * index;
-      const centerOfSegment = anglePerSegment * index + anglePerSegment / 2;
+      const centerOfSegment = segmentAngle; // Центр сектора относительно начального угла
       const pointerDirection = 3 * Math.PI / 2; // Стрелка смотрит вниз (270°)
-      
+    
+      // Вычисляем угол так, чтобы центр сектора совпадал со стрелкой
       totalRotation = 2 * Math.PI * extraTurns + pointerDirection - centerOfSegment;
-
+    
       popup.style.opacity = "0";
       requestAnimationFrame(animateSpin);
     }
