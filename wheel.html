@@ -204,7 +204,7 @@
       const baseRotation = 2 * Math.PI * extraTurns;
       const rewardOffset = index * anglePerSegment - anglePerSegment / 2;
     
-      totalRotation = baseRotation + targetOffset + rewardOffset;
+      totalRotation = baseRotation + targetOffset - rewardOffset;
     
       animationStartTime = null;
       resultIndex = index;
