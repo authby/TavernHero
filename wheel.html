@@ -42,7 +42,7 @@
       width: 0;
       height: 0;
       position: absolute;
-      top: calc(100% - 10px); /* Смещение для лучшей видимости */
+      top: calc(100% - 2px); /* Смещение для лучшей видимости */
       left: 50%;
       transform: translateX(-50%) rotate(180deg);
       border-left: clamp(15px, 4vw, 20px) solid transparent;
@@ -244,7 +244,7 @@
       const extraTurns = 7;
       const segmentAngle = anglePerSegment * index;
       const centerSegment = segmentAngle + anglePerSegment / 2;
-      const pointerAdjustment = Math.PI / 2;
+      const pointerAdjustment = -Math.PI / 2;
 
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment;
 
