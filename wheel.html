@@ -182,7 +182,16 @@
         // Текст/эмодзи
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + anglePerSegment / 2);
+        const angle = startAngle + anglePerSegment / 2;
+
+        ctx.rotate(angle);
+        
+        const isEmoji = reward.text === '🎁'; // Или через RegExp
+        
+        if (isEmoji) {
+          ctx.rotate(-angle); // Отменяем поворот для эмодзи
+        }
+        
         ctx.fillStyle = '#fff';
     
         // Проверяем, эмодзи ли это
