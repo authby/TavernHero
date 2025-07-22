@@ -73,7 +73,7 @@
       animation: pointer-updown 0.6s ease-in-out infinite;
     }
   </style>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js "></script>
 </head>
 <body>
   <div id="wheel-container">
@@ -112,7 +112,6 @@
 
     const anglePerSegment = (2 * Math.PI) / rewards.length;
     let currentAngle = 0;
-    let targetAngle = 0;
     let totalRotation = 0;
     let animationStartTime = null;
 
@@ -127,18 +126,18 @@
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
-    
+
       rewards.forEach((reward, i) => {
         const start = anglePerSegment * i - currentAngle;
         const end = start + anglePerSegment;
-    
+
         // Рисуем сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, baseRadius, start, end);
         ctx.fillStyle = reward.color;
         ctx.fill();
-    
+
         // Выделение текущего сегмента
         if (highlightIndex === i) {
           ctx.strokeStyle = "#FFD700";
@@ -148,7 +147,7 @@
           ctx.lineWidth = 2;
         }
         ctx.stroke();
-    
+
         // Текст внутри сегмента
         const midAngle = start + anglePerSegment / 2;
         ctx.save();
@@ -169,12 +168,14 @@
       const duration = 4; // Продолжительность анимации (в секундах)
       const t = Math.min(elapsed / duration, 1);
       const easing = 1 - Math.pow(1 - t, 3); // Замедление в конце
-    
+
       // Обновляем текущий угол вращения
       currentAngle = currentAngle + (totalRotation - currentAngle) * easing;
-    
+
+      console.log(`Current Angle: ${currentAngle}, Target Rotation: ${totalRotation}`);
+
       drawWheel(t === 1 ? resultIndex : null);
-    
+
       if (t < 1) {
         requestAnimationFrame(animateSpin);
       } else {
@@ -183,24 +184,26 @@
     }
 
     let resultIndex = null;
-    
+
     function spinToIndex(index) {
       console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
       const pointer = document.getElementById("pointer");
       pointer.classList.remove("animate");
       void pointer.offsetWidth;
       pointer.classList.add("animate");
-    
+
       // Дополнительные обороты (5-7 полных оборотов)
       const extraTurns = 5 + Math.random() * 2;
-    
+
       // Целевой угол для центра сегмента
       const targetSegmentAngle = anglePerSegment * index + anglePerSegment / 2; // Центр сегмента
       const pointerAdjustment = Math.PI; // Указатель внизу (180°)
-    
+
       // Полный угол вращения: дополнительные обороты + угол до центра сегмента + корректировка указателя
-      totalRotation = currentAngle + (extraTurns * 2 * Math.PI) + (2 * Math.PI - targetSegmentAngle) + pointerAdjustment;
-    
+      totalRotation = currentAngle + (extraTurns * 2 * Math.PI) - targetSegmentAngle + pointerAdjustment;
+
+      console.log(`Target Segment Angle: ${targetSegmentAngle}, Total Rotation: ${totalRotation}`);
+
       animationStartTime = null;
       resultIndex = index; // Сохраняем целевой индекс
       requestAnimationFrame(animateSpin);
@@ -210,11 +213,11 @@
       document.getElementById("pointer").classList.remove("animate");
       popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
-    
+
       setTimeout(() => {
         Telegram.WebApp.sendData(JSON.stringify({ type: rewards[resultIndex].type, value: rewards[resultIndex].value }));
       }, 500);
-    
+
       setTimeout(() => popup.style.opacity = "0", 2000);
       setTimeout(() => Telegram.WebApp.close(), 2500);
     }
@@ -236,7 +239,6 @@
     } else {
       spinToIndex(index);
     }
-    
   </script>
 </body>
 </html>
