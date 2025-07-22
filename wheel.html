@@ -93,6 +93,17 @@
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
 
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const forcedIndex = parseInt(urlParams.get("index"));
+    
+    if (!isNaN(forcedIndex)) {
+      forcedResultIndex = forcedIndex;
+      spinning = true;
+      animationStartTime = null;
+      animate(performance.now());
+    }
+
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const pointer = document.getElementById('pointer');
