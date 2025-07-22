@@ -9,7 +9,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Колесо фортуны</title>
   <style>
-    /* стили из твоего примера */
     body {
       display: flex;
       flex-direction: column;
@@ -42,6 +41,7 @@
       border-right: 25px solid transparent;
       border-bottom: 40px solid #000;
       animation: none;
+      /* Стрелка направлена вверх, стоит снизу */
     }
     #pointer::after {
       content: '';
@@ -62,31 +62,6 @@
       border-radius: 50%;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
       background: #fff;
-    }
-    #spinButton {
-      margin-top: 30px;
-      padding: 15px 30px;
-      font-size: 20px;
-      background: linear-gradient(45deg, #4CAF50, #66BB6A);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    #spinButton:hover:not(:disabled) {
-      transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
-    }
-    #spinButton:disabled {
-      background: #666;
-      cursor: not-allowed;
-    }
-    @keyframes bounce {
-      0%   { transform: translateX(-50%) translateY(0); }
-      30%  { transform: translateX(-50%) translateY(-10px); }
-      60%  { transform: translateX(-50%) translateY(5px); }
-      100% { transform: translateX(-50%) translateY(0); }
     }
     #rewardPopup {
       position: absolute;
@@ -114,36 +89,33 @@
     <canvas id="wheel"></canvas>
   </div>
   <div id="rewardPopup"></div>
-  <button id="spinButton" disabled>Вращать!</button>
   <script>
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
 
-    const canvas = document.getElementById("wheel");
-    const ctx = canvas.getContext("2d");
-    const spinButton = document.getElementById("spinButton");
-    const pointer = document.getElementById("pointer");
-    const wheelContainer = document.getElementById("wheel-container");
-    const rewardPopup = document.getElementById("rewardPopup");
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const pointer = document.getElementById('pointer');
+    const wheelContainer = document.getElementById('wheel-container');
 
     const rewards = [
-      { type: "exp_loss", value: 12, text: "-12 опыта", color: "#C62828" },
-      { type: "exp_gain", value: 12, text: "+12 опыта", color: "#388E3C" },
-      { type: "exp_loss", value: 6, text: "-6 опыта", color: "#E57373" },
-      { type: "item", value: "legendary", text: "🎁", color: "#FFD700" },
-      { type: "exp_loss", value: 3, text: "-3 опыта", color: "#EF9A9A" },
-      { type: "premium", value: 7, text: "Премиум аккаунт (7 дней)", color: "#6A1B9A" },
-      { type: "exp_loss", value: 3, text: "-3 опыта", color: "#EF9A9A" },
-      { type: "raid", value: "clear", text: "Сброс таймера /raid", color: "#1565C0" },
-      { type: "exp_loss", value: 24, text: "-24 опыта", color: "#B71C1C" },
-      { type: "exp_gain", value: 6, text: "+6 опыта", color: "#81C784" },
-      { type: "none", value: "none", text: "Повезёт в следующий раз", color: "#D32F2F" },
-      { type: "exp_loss", value: 15, text: "-15 опыта", color: "#F44336" },
-      { type: "item", value: "epic", text: "🎁", color: "#8E24AA" },
-      { type: "exp_loss", value: 18, text: "-18 опыта", color: "#AD1457" },
-      { type: "exp_gain", value: 30, text: "+30 опыта", color: "#2E7D32" },
-      { type: "exp_loss", value: 21, text: "-21 опыта", color: "#E53935" },
-      { type: "exp_gain", value: 24, text: "+24 опыта", color: "#43A047" },
+      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#C62828' }, 
+      { type: 'exp_gain', value: 12, text: '+12 опыта', color: '#388E3C' },
+      { type: 'exp_loss', value: 6, text: '-6 опыта', color: '#E57373' }, 
+      { type: 'item', value: 'legendary', text: '🎁', color: '#FFD700' }, 
+      { type: 'exp_loss', value: 3, text: '-3 опыта', color: '#EF9A9A' }, 
+      { type: 'premium', value: 7, text: 'Премиум аккаунт (7 дней)', color: '#6A1B9A' },
+      { type: 'exp_loss', value: 3, text: '-3 опыта', color: '#EF9A9A' },
+      { type: 'raid', value: 'clear', text: 'Сброс таймера /raid', color: '#1565C0' },
+      { type: 'exp_loss', value: 24, text: '-24 опыта', color: '#B71C1C' },  
+      { type: 'exp_gain', value: 6, text: '+6 опыта', color: '#81C784' },  
+      { type: 'none', value: 'none', text: 'Повезёт в следующий раз', color: '#D32F2F' },  
+      { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#F44336' },  
+      { type: 'item', value: 'epic', text: '🎁', color: '#8E24AA' },   
+      { type: 'exp_loss', value: 18, text: '-18 опыта', color: '#AD1457' },    
+      { type: 'exp_gain', value: 30, text: '+30 опыта', color: '#2E7D32' },
+      { type: 'exp_loss', value: 21, text: '-21 опыта', color: '#E53935' },
+      { type: 'exp_gain', value: 24, text: '+24 опыта', color: '#43A047' },
     ];
 
     const anglePerSegment = (2 * Math.PI) / rewards.length;
@@ -151,23 +123,13 @@
     let spinning = false;
     let spinVelocity = 0;
 
-    // Получаем параметры из URL
-    function getQueryParams() {
-      const params = {};
-      location.search.substr(1).split("&").forEach(function (item) {
-        const [key, value] = item.split("=");
-        if (key) params[key] = decodeURIComponent(value);
-      });
-      return params;
-    }
+    // Входной параметр — индекс результата, полученного от сервера
+    // Например, сюда прилетает index, который должен быть выигрышем
+    // Пример: const forcedResultIndex = 7;
 
-    const params = getQueryParams();
-    const selectedIndex = parseInt(params.index) || 0;
-    const selectedReward = {
-      type: params.type || "none",
-      value: params.value || null,
-      text: params.text || "Повезёт в следующий раз",
-    };
+    // Для демонстрации, поставим forcedResultIndex в глобальную переменную,
+    // в реальном коде надо получать через Telegram.WebApp.initDataUnsafe или сообщение от бота.
+    let forcedResultIndex = null;
 
     function drawWheel() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -180,17 +142,15 @@
         const startAngle = currentAngle + anglePerSegment * index;
         const endAngle = startAngle + anglePerSegment;
 
-        // Сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
         ctx.fillStyle = reward.color;
         ctx.fill();
         ctx.lineWidth = 2;
-        ctx.strokeStyle = "#fff";
+        ctx.strokeStyle = '#fff';
         ctx.stroke();
 
-        // Подготовка текста
         const midAngle = startAngle + anglePerSegment / 2;
         const isEmoji = /^[^\w\s]+$/.test(reward.text);
         const fontSize = isEmoji
@@ -198,9 +158,9 @@
           : Math.max(10, canvas.width / 40);
 
         ctx.font = `bold ${fontSize}px "Segoe UI Emoji", Arial`;
-        ctx.fillStyle = "#fff";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
         ctx.save();
         if (isEmoji) {
@@ -216,54 +176,80 @@
       });
     }
 
-    // Анимация плавного вращения к нужному сектору
-    function animateSpinToIndex(targetIndex, reward) {
-      spinButton.disabled = true;
-      spinning = true;
+    // Стрелка смотрит вверх, значит pointerAngle = -π/2
+    const pointerAngle = -Math.PI / 2;
 
-      const spins = 4; // количество полных оборотов
-      const targetAngle =
-        2 * Math.PI * spins -
-        (targetIndex * anglePerSegment) +
-        anglePerSegment / 2;
+    // Спин с учётом принудительного результата
+    let animationStartTime = null;
+    const spinDuration = 5000; // длительность анимации спина в мс
 
-      const duration = 5000; // время вращения в мс
-      const startTime = performance.now();
+    function animate(timestamp) {
+      if (!animationStartTime) animationStartTime = timestamp;
 
-      function spin(timestamp) {
-        const elapsed = timestamp - startTime;
-        if (elapsed >= duration) {
-          currentAngle = targetAngle % (2 * Math.PI);
-          spinning = false;
-          drawWheel();
-          showResultPopup(reward);
-          return;
+      const elapsed = timestamp - animationStartTime;
+
+      if (forcedResultIndex === null) {
+        // Если результат не задан, просто крутим с затуханием
+        if (spinning) {
+          currentAngle += spinVelocity;
+          spinVelocity *= 0.985;
+          if (spinVelocity < 0.002) {
+            spinning = false;
+            showResult();
+          }
+        }
+      } else {
+        // Анимация с заранее известным результатом — плавно дотянуть колесо до нужного угла
+
+        // Целевой угол для остановки:
+        // вращаем на несколько полных оборотов + позиция нужного сектора с поправкой на стрелку
+        const totalSpins = 6; // количество полных оборотов перед остановкой
+        const targetAngle = 
+          totalSpins * 2 * Math.PI + // полные обороты
+          (rewards.length - forcedResultIndex) * anglePerSegment - // сектор, учитывая направление вращения
+          pointerAngle + // поправка на направление стрелки (стрелка смотрит вверх)
+          anglePerSegment / 2; // центр сектора
+
+        // easeOut функция для плавного замедления
+        function easeOut(t) {
+          return 1 - Math.pow(1 - t, 3);
         }
 
-        // ease-out функция для плавности замедления
-        const t = elapsed / duration;
-        const easeOut = 1 - Math.pow(1 - t, 3);
+        const progress = Math.min(elapsed / spinDuration, 1);
+        currentAngle = targetAngle * easeOut(progress);
 
-        currentAngle = easeOut * targetAngle;
-        drawWheel();
-        requestAnimationFrame(spin);
+        if (progress === 1) {
+          spinning = false;
+          showResult();
+          forcedResultIndex = null; // сброс результата для следующего спина
+        }
       }
-      requestAnimationFrame(spin);
+
+      drawWheel();
+
+      if (spinning || forcedResultIndex !== null) {
+        requestAnimationFrame(animate);
+      }
     }
 
-    function showResultPopup(reward) {
-      pointer.style.animation = "bounce 0.5s ease";
-      setTimeout(() => (pointer.style.animation = "none"), 500);
+    function showResult() {
+      const popup = document.getElementById('rewardPopup');
+      const reward = rewards[forcedResultIndex ?? Math.floor(
+        ((2 * Math.PI - (currentAngle % (2 * Math.PI)) + Math.PI / 2) % (2 * Math.PI)) / anglePerSegment
+      )];
+      
+      pointer.style.animation = 'bounce 0.5s ease';
+      setTimeout(() => pointer.style.animation = 'none', 500);
 
-      rewardPopup.textContent = reward.text;
-      rewardPopup.style.opacity = "1";
+      popup.textContent = reward.text;
+      popup.style.opacity = '1';
 
       setTimeout(() => {
-        Telegram.WebApp.sendData(JSON.stringify(reward));
+        Telegram.WebApp.sendData(JSON.stringify({ type: reward.type, value: reward.value, index: forcedResultIndex }));
       }, 500);
 
       setTimeout(() => {
-        rewardPopup.style.opacity = "0";
+        popup.style.opacity = '0';
       }, 2000);
 
       setTimeout(() => {
@@ -271,20 +257,36 @@
       }, 2500);
     }
 
+    // Входные данные из бота
+    window.Telegram.WebApp.onEvent('mainButtonClicked', () => {
+      // Игнорируем — у нас нет кнопки спина
+    });
+
+    // Ждём команду от бота с результатом
+    window.Telegram.WebApp.onEvent('data', (data) => {
+      try {
+        const parsed = JSON.parse(data);
+        if (typeof parsed.index === 'number' && parsed.index >= 0 && parsed.index < rewards.length) {
+          forcedResultIndex = parsed.index;
+          spinning = true;
+          animationStartTime = null;
+          animate(performance.now());
+        }
+      } catch(e) {
+        console.error('Ошибка разбора данных от бота:', e);
+      }
+    });
+
+    // Инициализация
     function resizeCanvas() {
       canvas.width = wheelContainer.offsetWidth;
       canvas.height = wheelContainer.offsetHeight;
       drawWheel();
     }
 
-    window.addEventListener("resize", resizeCanvas);
-
-    window.onload = () => {
-      resizeCanvas();
-      drawWheel();
-      animateSpinToIndex(selectedIndex, selectedReward);
-    };
-
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    drawWheel();
   </script>
 </body>
 </html>
