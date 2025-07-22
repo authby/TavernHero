@@ -2,49 +2,57 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Колесо фортуны - фиксированная остановка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Колесо фортуны</title>
+  <meta name="theme-color" content="#222" />
   <style>
     html, body {
-      margin: 0; padding: 0; height: 100%; width: 100%;
-      display: flex; justify-content: center; align-items: center;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
       background: linear-gradient(135deg, #222, #333);
       font-family: Arial, sans-serif;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
+
     #wheel-container {
       position: relative;
       width: min(90vw, 90vh);
       height: min(90vw, 90vh);
     }
+
     canvas {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       border: 4px solid #fff;
       border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
       background: #fff;
-      box-shadow: 0 0 20px rgba(255,255,255,0.3);
     }
+    
     #pointer {
+      width: 0;
+      height: 0;
       position: absolute;
       top: 100%;
       left: 50%;
       transform: translateX(-50%) rotate(180deg);
-      width: 0; height: 0;
       border-left: 25px solid transparent;
       border-right: 25px solid transparent;
       border-top: 40px solid #000;
       z-index: 10;
-      animation: pointer-updown 0.6s ease-in-out infinite;
     }
-    @keyframes pointer-updown {
-      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
-      50% { transform: translateX(-50%) translateY(-10px) rotate(180deg); }
-    }
+
     #rewardPopup {
       position: absolute;
-      top: 50%; left: 50%;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.85);
+      background: rgba(0, 0, 0, 0.85);
       color: #fff;
       padding: 20px 30px;
       border-radius: 12px;
@@ -56,7 +64,16 @@
       z-index: 100;
       text-align: center;
     }
+    @keyframes pointer-updown {
+      0%, 100% { transform: translateX(-50%) translateY(0) rotate(180deg); }
+      50% { transform: translateX(-50%) translateY(-10px) rotate(180deg); }
+    }
+    
+    #pointer.animate {
+      animation: pointer-updown 0.6s ease-in-out infinite;
+    }
   </style>
+  <script src="https://telegram.org/js/telegram-web-app.js  "></script>
 </head>
 <body>
   <div id="wheel-container">
