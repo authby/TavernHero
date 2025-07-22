@@ -168,7 +168,8 @@
       rewards.forEach((reward, index) => {
         const startAngle = currentAngle + anglePerSegment * index;
         const endAngle = startAngle + anglePerSegment;
-    
+      
+        // Сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
@@ -177,23 +178,31 @@
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#fff';
         ctx.stroke();
-    
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        const angle = startAngle + anglePerSegment / 2;
-        ctx.rotate(angle);
-    
+      
+        // Подготовка текста
+        const midAngle = startAngle + anglePerSegment / 2;
         const isEmoji = /^[^\w\s]+$/.test(reward.text);
         const fontSize = isEmoji
-          ? Math.max(10, canvas.width / 20)
+          ? Math.max(10, canvas.width / 18)
           : Math.max(10, canvas.width / 40);
-    
+      
         ctx.font = `bold ${fontSize}px "Segoe UI Emoji", Arial`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        if (isEmoji) ctx.rotate(-angle); // отменяем поворот для эмодзи
-        ctx.fillText(reward.text, baseRadius * 0.7, 0);
+      
+        ctx.save();
+        if (isEmoji) {
+          // Рисуем эмодзи по координатам (без поворота)
+          const x = centerX + baseRadius * 0.7 * Math.cos(midAngle);
+          const y = centerY + baseRadius * 0.7 * Math.sin(midAngle);
+          ctx.fillText(reward.text, x, y);
+        } else {
+          // Текст поворачиваем
+          ctx.translate(centerX, centerY);
+          ctx.rotate(midAngle);
+          ctx.fillText(reward.text, baseRadius * 0.7, 0);
+        }
         ctx.restore();
       });
     }
