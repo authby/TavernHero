@@ -177,10 +177,12 @@
     function animateSpin(timestamp) {
       if (!animationStartTime) animationStartTime = timestamp;
       const elapsed = (timestamp - animationStartTime) / 1000;
-      const duration = 4;
+      const duration = 4; // Продолжительность анимации (в секундах)
       const t = Math.min(elapsed / duration, 1);
-      const easing = 1 - Math.pow(1 - t, 3);
-      currentAngle = totalRotation * easing;
+      const easing = 1 - Math.pow(1 - t, 3); // Замедление в конце
+    
+      // Обновляем текущий угол вращения
+      currentAngle = currentAngle + (totalRotation - currentAngle) * easing;
     
       drawWheel(t === 1 ? resultIndex : null);
     
@@ -200,14 +202,15 @@
       void pointer.offsetWidth;
       pointer.classList.add("animate");
     
-      // Исправленный расчет угла
-      const extraTurns = 5 + Math.random() * 2; // Дополнительные обороты (5-7 полных оборотов)
-      const segmentAngle = anglePerSegment * index; // Угол до начала сегмента
-      const centerSegment = segmentAngle + anglePerSegment / 2; // Центр сегмента
-      const pointerAdjustment = Math.PI; // Стрелка внизу (180°)
+      // Дополнительные обороты (5-7 полных оборотов)
+      const extraTurns = 5 + Math.random() * 2;
+    
+      // Целевой угол для центра сегмента
+      const targetSegmentAngle = anglePerSegment * index + anglePerSegment / 2; // Центр сегмента
+      const pointerAdjustment = Math.PI; // Указатель внизу (180°)
     
       // Полный угол вращения: дополнительные обороты + угол до центра сегмента + корректировка указателя
-      totalRotation = (2 * Math.PI * extraTurns) + centerSegment + pointerAdjustment - currentAngle;
+      totalRotation = currentAngle + (extraTurns * 2 * Math.PI) + (2 * Math.PI - targetSegmentAngle) + pointerAdjustment;
     
       animationStartTime = null;
       resultIndex = index; // Сохраняем целевой индекс
