@@ -164,11 +164,12 @@
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
       const extendedRadius = baseRadius + 20;
-
+    
       rewards.forEach((reward, index) => {
         const startAngle = currentAngle + anglePerSegment * index;
         const endAngle = startAngle + anglePerSegment;
-
+    
+        // Сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
@@ -177,12 +178,20 @@
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#fff';
         ctx.stroke();
-
+    
+        // Текст/эмодзи
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(startAngle + anglePerSegment / 2);
         ctx.fillStyle = '#fff';
-        ctx.font = `bold ${Math.max(10, canvas.width / 40)}px Arial`;
+    
+        // Проверяем, эмодзи ли это
+        const isEmoji = /^[^\w\s]+$/.test(reward.text); // или reward.text === '🎁'
+        const fontSize = isEmoji
+          ? Math.max(10, canvas.width / 10) // крупнее
+          : Math.max(10, canvas.width / 40); // стандарт
+    
+        ctx.font = `bold ${fontSize}px "Segoe UI Emoji", Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(reward.text, baseRadius * 0.7, 0);
