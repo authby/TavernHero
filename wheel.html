@@ -197,7 +197,7 @@
         // Проверяем, эмодзи ли это
         const isEmoji = /^[^\w\s]+$/.test(reward.text); // или reward.text === '🎁'
         const fontSize = isEmoji
-          ? Math.max(10, canvas.width / 10) // крупнее
+          ? Math.max(10, canvas.width / 20) // крупнее
           : Math.max(10, canvas.width / 40); // стандарт
     
         ctx.font = `bold ${fontSize}px "Segoe UI Emoji", Arial`;
