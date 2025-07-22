@@ -12,17 +12,20 @@
       height: 100%;
       width: 100%;
       background: linear-gradient(135deg, #222, #333);
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
+      touch-action: none; /* Предотвращает нежелательное масштабирование/прокрутку на мобильных */
     }
 
     #wheel-container {
       position: relative;
       width: min(90vw, 90vh);
       height: min(90vw, 90vh);
+      max-width: 600px; /* Ограничение максимального размера для больших экранов */
+      max-height: 600px;
     }
 
     canvas {
@@ -32,19 +35,21 @@
       border-radius: 50%;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
       background: #fff;
+      touch-action: none; /* Отключает сенсорные события на canvas */
     }
 
     #pointer {
       width: 0;
       height: 0;
       position: absolute;
-      top: 100%;
+      top: calc(100% - 10px); /* Смещение для лучшей видимости */
       left: 50%;
       transform: translateX(-50%) rotate(180deg);
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-top: 30px solid #000;
+      border-left: clamp(15px, 4vw, 20px) solid transparent;
+      border-right: clamp(15px, 4vw, 20px) solid transparent;
+      border-top: clamp(25px, 6vw, 30px) solid #000;
       z-index: 10;
+      transition: transform 0.1s ease; /* Плавность для сенсорных взаимодействий */
     }
 
     #pointer.animate {
@@ -57,21 +62,47 @@
     }
 
     #rewardPopup {
-      position: absolute;
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(0, 0, 0, 0.85);
       color: #fff;
-      padding: 16px 24px;
+      padding: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 24px);
       border-radius: 12px;
-      font-size: clamp(16px, 4vw, 22px);
+      font-size: clamp(14px, 3.5vw, 20px);
       font-weight: bold;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: 100;
       text-align: center;
+      max-width: 90%;
+      box-sizing: border-box;
+    }
+
+    /* Медиа-запросы для адаптации под разные размеры экрана */
+    @media (max-width: 600px) {
+      #wheel-container {
+        width: min(95vw, 95vh);
+        height: min(95vw, 95vh);
+      }
+
+      #rewardPopup {
+        font-size: clamp(12px, 4vw, 18px);
+        padding: clamp(10px, 2.5vw, 14px) clamp(16px, 4vw, 20px);
+      }
+    }
+
+    @media (min-width: 1200px) {
+      #wheel-container {
+        width: min(80vw, 80vh);
+        height: min(80vw, 80vh);
+      }
+
+      canvas {
+        border-width: 3px; /* Более толстая рамка для больших экранов */
+      }
     }
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -117,8 +148,10 @@
     let resultIndex = null;
 
     function resizeCanvas() {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio; /* Учет пиксельной плотности */
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      canvas.style.width = `${canvas.offsetWidth}px`; /* Сохранение CSS размеров */
+      canvas.style.height = `${canvas.offsetHeight}px`;
       drawWheel();
     }
 
@@ -126,33 +159,49 @@
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const radius = canvas.width / 2 - 20;
-
+    
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    
       for (let i = 0; i < segmentCount; i++) {
         const startAngle = currentAngle + i * anglePerSegment;
         const endAngle = startAngle + anglePerSegment;
-
+    
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.closePath();
         ctx.fillStyle = rewards[i].color;
         ctx.fill();
-
+    
         ctx.lineWidth = highlightIndex === i ? 3 : 1;
         ctx.strokeStyle = highlightIndex === i ? '#FFD700' : '#fff';
         ctx.stroke();
-
+    
         const midAngle = startAngle + anglePerSegment / 2;
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(midAngle);
+    
+        // Настройка шрифта и текста
+        const isEmoji = rewards[i].type === 'item'; // Проверяем, эмодзи ли это
+        const baseFontSize = Math.max(10, radius / 18);
+        ctx.font = `${isEmoji ? baseFontSize * 2 : baseFontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
         ctx.fillStyle = '#fff';
-        ctx.font = `${Math.max(12, radius / 16)}px Arial`;
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
-        ctx.fillText(rewards[i].text, radius - 10, 0);
+    
+        // Поворот эмодзи на 90 градусов (или другой угол, если нужно)
+        if (isEmoji) {
+          ctx.rotate(Math.PI / 2); // Поворот на 90 градусов по часовой стрелке
+        }
+    
+        // Обрезаем длинный текст для малых экранов
+        const maxTextWidth = radius - 20;
+        let text = rewards[i].text;
+        while (ctx.measureText(text).width > maxTextWidth && text.length > 1 && !isEmoji) {
+          text = text.slice(0, -1);
+        }
+        ctx.fillText(text, radius - 10, 0);
         ctx.restore();
       }
     }
@@ -178,7 +227,7 @@
 
     function spinToIndex(index) {
       if (index < 0 || index >= segmentCount) {
-        popup.textContent = "Invalid index";
+        popup.textContent = "Неверный индекс";
         popup.style.opacity = "1";
         return;
       }
@@ -213,6 +262,22 @@
         Telegram.WebApp.close();
       }, 2500);
     }
+
+    // Добавляем обработчик сенсорных событий
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      pointer.classList.add('animate');
+    });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      pointer.classList.remove('animate');
+      const urlParams = new URLSearchParams(window.location.search);
+      const indexParam = parseInt(urlParams.get("index"), 10);
+      if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
+        spinToIndex(indexParam);
+      }
+    });
 
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
