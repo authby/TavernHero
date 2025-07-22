@@ -121,16 +121,23 @@
     const value = urlParams.get("value");
     const text = urlParams.get("text");
 
+    function normalizeAngle(angle) {
+      return angle - Math.floor(angle / (2 * Math.PI)) * (2 * Math.PI);
+    }    
+        
     function drawWheel(highlightIndex = null) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
     
+      // Нормализуем текущий угол
+      const normalizedCurrentAngle = normalizeAngle(currentAngle);
+    
       rewards.forEach((reward, i) => {
-        // Углы сектора относительно текущего угла колеса
-        const start = anglePerSegment * i - currentAngle;
-        const end = start + anglePerSegment;
+        // Углы сектора относительно нормализованного текущего угла колеса
+        const start = normalizeAngle(anglePerSegment * i - normalizedCurrentAngle);
+        const end = normalizeAngle(start + anglePerSegment);
     
         console.log(`Drawing segment ${i}: Start Angle: ${start}, End Angle: ${end}`);
     
@@ -152,7 +159,7 @@
         ctx.stroke();
     
         // Текст внутри сегмента
-        const midAngle = start + anglePerSegment / 2; // Середина сектора
+        const midAngle = normalizeAngle(start + anglePerSegment / 2); // Середина сектора
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(midAngle); // Поворачиваем текст вдоль радиуса
