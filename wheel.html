@@ -147,6 +147,12 @@
           ctx.lineWidth = 2;
         }
         ctx.stroke();
+        
+        ctx.fillStyle = "#000";
+        ctx.font = `bold ${canvas.width / 20}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`Index: ${resultIndex !== null ? resultIndex : "-"}`, canvas.width / 2, canvas.height / 2);
     
         const midAngle = start + anglePerSegment / 2;
         ctx.save();
@@ -194,6 +200,7 @@
     let resultIndex = null;
     
     function spinToIndex(index) {
+      console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
       const pointer = document.getElementById("pointer");
       pointer.classList.remove("animate");
       void pointer.offsetWidth;
@@ -203,7 +210,7 @@
       const segmentAngle = anglePerSegment * index; // Угол до начала сегмента
       const centerSegment = segmentAngle + anglePerSegment / 2; // Центр сегмента
       const pointerAdjustment = Math.PI; // Стрелка внизу (180°)
-      totalRotation = 2 * Math.PI * extraTurns + pointerAdjustment - centerSegment;
+      totalRotation = (2 * Math.PI * extraTurns) - centerSegment + pointerAdjustment;
     
       animationStartTime = null;
       resultIndex = index;
@@ -212,13 +219,13 @@
 
     function showReward() {
       document.getElementById("pointer").classList.remove("animate");
-      popup.textContent = decodeURIComponent(text || "?");
+      popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
-
+    
       setTimeout(() => {
-        Telegram.WebApp.sendData(JSON.stringify({ type, value }));
+        Telegram.WebApp.sendData(JSON.stringify({ type: rewards[resultIndex].type, value: rewards[resultIndex].value }));
       }, 500);
-
+    
       setTimeout(() => popup.style.opacity = "0", 2000);
       setTimeout(() => Telegram.WebApp.close(), 2500);
     }
@@ -232,6 +239,13 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
+    if (isNaN(index) || index < 0 || index >= rewards.length) {
+      console.error(`Invalid reward index: ${index}`);
+      popup.textContent = "Ошибка: неверный индекс награды";
+      popup.style.opacity = "1";
+      return;
+    }
+  
     if (!isNaN(index)) {
       spinToIndex(index);
     }
