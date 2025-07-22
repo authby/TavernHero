@@ -210,7 +210,7 @@
       const segmentAngle = anglePerSegment * index; // Угол до начала сегмента
       const centerSegment = segmentAngle + anglePerSegment / 2; // Центр сегмента
       const pointerAdjustment = Math.PI; // Стрелка внизу (180°)
-      totalRotation = (2 * Math.PI * extraTurns) - centerSegment + pointerAdjustment;
+      totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment - currentAngle;
     
       animationStartTime = null;
       resultIndex = index;
