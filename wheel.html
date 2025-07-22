@@ -126,18 +126,19 @@
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
-
+    
       rewards.forEach((reward, i) => {
+        // Углы сектора относительно текущего угла колеса
         const start = anglePerSegment * i - currentAngle;
         const end = start + anglePerSegment;
-
+    
         // Рисуем сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, baseRadius, start, end);
         ctx.fillStyle = reward.color;
         ctx.fill();
-
+    
         // Выделение текущего сегмента
         if (highlightIndex === i) {
           ctx.strokeStyle = "#FFD700";
@@ -147,12 +148,12 @@
           ctx.lineWidth = 2;
         }
         ctx.stroke();
-
+    
         // Текст внутри сегмента
-        const midAngle = start + anglePerSegment / 2;
+        const midAngle = start + anglePerSegment / 2; // Середина сектора
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(midAngle);
+        ctx.rotate(midAngle); // Поворачиваем текст вдоль радиуса
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#fff";
