@@ -121,23 +121,23 @@
     const popup = document.getElementById("rewardPopup");
 
     const rewards = [
-      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#C62828' },
-      { type: 'exp_gain', value: 12, text: '+12 опыта', color: '#388E3C' },
-      { type: 'exp_loss', value: 6, text: '-6 опыта', color: '#E57373' },
+      { type: 'exp_loss', value: 12, text: 'опыт -12', color: '#C62828' },
+      { type: 'exp_gain', value: 12, text: 'опыт +12', color: '#388E3C' },
+      { type: 'exp_loss', value: 6, text: 'опыт -6', color: '#E57373' },
       { type: 'item', value: 'legendary', text: '🎁', color: '#FFD700' },
-      { type: 'exp_loss', value: 3, text: '-3 опыта', color: '#EF9A9A' },
+      { type: 'exp_loss', value: 3, text: 'опыт -3', color: '#EF9A9A' },
       { type: 'premium', value: 3, text: 'Премиум аккаунт (3 дня)', color: '#6A1B9A' },
-      { type: 'exp_loss', value: 3, text: '-3 опыта', color: '#EF9A9A' },
+      { type: 'exp_loss', value: 3, text: 'опыт -3', color: '#EF9A9A' },
       { type: 'raid', value: 'clear', text: 'Сброс таймера /raid', color: '#1565C0' },
-      { type: 'exp_loss', value: 24, text: '-24 опыта', color: '#B71C1C' },
-      { type: 'exp_gain', value: 6, text: '+6 опыта', color: '#81C784' },
+      { type: 'exp_loss', value: 24, text: 'опыт -24', color: '#B71C1C' },
+      { type: 'exp_gain', value: 6, text: 'опыт +6', color: '#81C784' },
       { type: 'none', value: 'none', text: 'Повезёт в следующий раз', color: '#D32F2F' },
-      { type: 'exp_loss', value: 15, text: '-15 опыта', color: '#F44336' },
+      { type: 'exp_loss', value: 15, text: 'опыт -15', color: '#F44336' },
       { type: 'item', value: 'epic', text: '🎁', color: '#8E24AA' },
-      { type: 'exp_loss', value: 18, text: '-18 опыта', color: '#AD1457' },
-      { type: 'exp_gain', value: 30, text: '+30 опыта', color: '#2E7D32' },
-      { type: 'exp_loss', value: 21, text: '-21 опыта', color: '#E53935' },
-      { type: 'exp_gain', value: 24, text: '+24 опыта', color: '#43A047' },
+      { type: 'exp_loss', value: 18, text: 'опыт -18', color: '#AD1457' },
+      { type: 'exp_gain', value: 30, text: 'опыт +30', color: '#2E7D32' },
+      { type: 'exp_loss', value: 21, text: 'опыт -21', color: '#E53935' },
+      { type: 'exp_gain', value: 24, text: 'опыт +24', color: '#43A047' },
     ];
 
     const segmentCount = rewards.length;
@@ -204,7 +204,7 @@
           while (ctx.measureText(text).width > maxTextWidth && text.length > 1) {
             text = text.slice(0, -1);
           }
-          ctx.fillText(text, radius * 0.7, 0);
+          ctx.fillText(text, radius * 0.6, 0);
         }
     
         ctx.restore();
