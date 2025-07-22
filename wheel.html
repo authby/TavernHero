@@ -221,8 +221,26 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
-    // Запуск с фиксированным индексом 2 (третья награда)
-    spinToIndex(2);
+    // Читаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const indexParam = urlParams.get("index");
+    const typeParam = urlParams.get("type");
+    const valueParam = urlParams.get("value");
+    const textParam = urlParams.get("text");
+    
+    // Преобразуем index в число и проверяем валидность
+    const index = parseInt(indexParam, 10);
+    
+    if (!isNaN(index) && index >= 0 && index < rewards.length) {
+      spinToIndex(index);
+    
+      // Можно дополнительно обработать type, value, text если нужно
+      console.log(`Received index=${index}, type=${typeParam}, value=${valueParam}, text=${textParam}`);
+    } else {
+      // Если index невалидный — покажем ошибку
+      popup.textContent = "Ошибка: неверный индекс в параметрах URL";
+      popup.style.opacity = "1";
+    }
   </script>
 </body>
 </html>
