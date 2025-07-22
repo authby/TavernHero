@@ -215,7 +215,7 @@
       pointer.classList.add("animate");
       if (!animationStartTime) animationStartTime = timestamp;
       const elapsed = (timestamp - animationStartTime) / 1000;
-      const duration = 4;
+      const duration = 2 + extraTurns * 0.5;
       const t = Math.min(elapsed / duration, 1);
       const easing = 1 - Math.pow(1 - t, 3);
 
