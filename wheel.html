@@ -201,19 +201,19 @@
       pointer.classList.remove("animate");
       void pointer.offsetWidth;
       pointer.classList.add("animate");
-
+    
       // Дополнительные обороты (5-7 полных оборотов)
       const extraTurns = 5 + Math.random() * 2;
-
+    
       // Целевой угол для центра сегмента
-      const targetSegmentAngle = anglePerSegment * index + anglePerSegment / 2; // Центр сегмента
+      const targetSegmentAngle = normalizeAngle(anglePerSegment * index + anglePerSegment / 2); // Центр сегмента
       const pointerAdjustment = Math.PI; // Указатель внизу (180°)
-
+    
       // Полный угол вращения: дополнительные обороты + угол до центра сегмента + корректировка указателя
       totalRotation = currentAngle + (extraTurns * 2 * Math.PI) - targetSegmentAngle + pointerAdjustment;
-
+    
       console.log(`Target Segment Angle: ${targetSegmentAngle}, Total Rotation: ${totalRotation}`);
-
+    
       animationStartTime = null;
       resultIndex = index; // Сохраняем целевой индекс
       requestAnimationFrame(animateSpin);
