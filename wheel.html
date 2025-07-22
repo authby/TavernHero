@@ -126,25 +126,15 @@
     }    
 
     function getSectorIndexByAngle(angle) {
-      const pointerAngle = normalizeAngle(angle + Math.PI); // Указатель внизу (180°)
-      console.log(`Pointer Angle: ${pointerAngle}`);
+        const pointerAngle = normalizeAngle(angle + Math.PI); // Указатель внизу (180°)
+        console.log(`Pointer Angle: ${pointerAngle}`);
     
-      for (let i = 0; i < rewards.length; i++) {
-        const start = normalizeAngle(anglePerSegment * i);
-        const end = normalizeAngle(start + anglePerSegment);
+        // Вычисляем индекс сегмента
+        const segmentIndex = Math.floor(normalizeAngle(2 * Math.PI - pointerAngle) / anglePerSegment) % rewards.length;
+        console.log(`Expected Segment: ${resultIndex}, Calculated Segment: ${segmentIndex}`);
     
-        // Обработка случая, когда сектор пересекает границу [0, 2π)
-        if (end > start) {
-          if (start <= pointerAngle && pointerAngle < end) {
-            return i;
-          }
-        } else {
-          // Сектор пересекает границу [0, 2π)
-          if (pointerAngle >= start || pointerAngle < end) {
-            return i;
-          }
-        }
-      }
+        return segmentIndex;
+    }
     
       return -1; // Если ни один сектор не найден
     }
@@ -197,50 +187,52 @@
     }
 
     function animateSpin(timestamp) {
-      if (!animationStartTime) animationStartTime = timestamp;
-      const elapsed = (timestamp - animationStartTime) / 1000;
-      const duration = 4; // Продолжительность анимации (в секундах)
-      const t = Math.min(elapsed / duration, 1);
-      const easing = 1 - Math.pow(1 - t, 3); // Замедление в конце
+        if (!animationStartTime) animationStartTime = timestamp;
+        const elapsed = (timestamp - animationStartTime) / 1000;
+        const duration = 4; // Продолжительность анимации (в секундах)
+        const t = Math.min(elapsed / duration, 1);
+        const easing = 1 - Math.pow(1 - t, 3); // Замедление в конце
     
-      // Обновляем текущий угол вращения
-      currentAngle = currentAngle + (totalRotation - currentAngle) * easing;
+        // Обновляем текущий угол вращения
+        currentAngle = normalizeAngle(currentAngle + (totalRotation - currentAngle) * easing);
     
-      console.log(`Current Angle: ${currentAngle}, Target Rotation: ${totalRotation}`);
+        console.log(`Current Angle: ${currentAngle}, Target Rotation: ${totalRotation}`);
     
-      drawWheel(t === 1 ? resultIndex : null);
+        drawWheel(t === 1 ? resultIndex : null);
     
-      if (t < 1) {
-        requestAnimationFrame(animateSpin);
-      } else {
-        showReward();
-      }
+        if (t < 1) {
+            requestAnimationFrame(animateSpin);
+        } else {
+            // Финальная корректировка угла
+            currentAngle = normalizeAngle(totalRotation);
+            drawWheel(resultIndex);
+            showReward();
+        }
     }
 
     let resultIndex = null;
 
     function spinToIndex(index) {
-      console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
-      const pointer = document.getElementById("pointer");
-      pointer.classList.remove("animate");
-      void pointer.offsetWidth;
-      pointer.classList.add("animate");
+        console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
+        const pointer = document.getElementById("pointer");
+        pointer.classList.remove("animate");
+        void pointer.offsetWidth;
+        pointer.classList.add("animate");
     
-      // Дополнительные обороты (5-7 полных оборотов)
-      const extraTurns = 5 + Math.random() * 2;
+        // Дополнительные обороты (5-7 полных оборотов)
+        const extraTurns = 5 + Math.random() * 2;
     
-      // Целевой угол для центра сегмента
-      const targetSegmentAngle = normalizeAngle(anglePerSegment * index + anglePerSegment / 2); // Центр сегмента
-      const pointerAdjustment = Math.PI; // Указатель внизу (180°)
+        // Целевой угол для центра сегмента
+        const targetSegmentAngle = anglePerSegment * index + anglePerSegment / 2; // Центр сегмента
     
-      // Полный угол вращения: дополнительные обороты - угол до центра сегмента + корректировка указателя
-      totalRotation = currentAngle + (extraTurns * 2 * Math.PI) - targetSegmentAngle + pointerAdjustment;
+        // Полный угол вращения: текущий угол + дополнительные обороты + целевой угол
+        totalRotation = normalizeAngle(currentAngle + (extraTurns * 2 * Math.PI) + (2 * Math.PI - targetSegmentAngle));
     
-      console.log(`Target Segment Angle: ${targetSegmentAngle}, Total Rotation: ${totalRotation}`);
+        console.log(`Target Segment Angle: ${targetSegmentAngle}, Total Rotation: ${totalRotation}`);
     
-      animationStartTime = null;
-      resultIndex = index; // Сохраняем целевой индекс
-      requestAnimationFrame(animateSpin);
+        animationStartTime = null;
+        resultIndex = index; // Сохраняем целевой индекс
+        requestAnimationFrame(animateSpin);
     }
 
     function showReward() {
