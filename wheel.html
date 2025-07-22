@@ -135,22 +135,19 @@
     const wheelContainer = document.getElementById('wheel-container');
 
     const rewards = [
-      { type: 'exp_gain', value: 12, text: '12 опыта', color: '#388E3C' },      // зелёный, рост опыта
-      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#C62828' },     // тёмно-красный, потеря опыта
-      { type: 'exp_loss', value: '6', text: '-6 опыта', color: '#E57373' },     // светло-красный
-      { type: 'item', value: 'legendary', text: '🎁', color: '#FFD700' },       // золотой - оставил
-      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#B71C1C' },     // насыщенный красный
-      { type: 'premium', value: 7, text: 'премиум на 7 дней', color: '#6A1B9A' },// пурпурный — премиум стиль
-      { type: 'exp_gain', value: 24, text: '24 опыта', color: '#43A047' },      // более яркий зелёный
-      { type: 'exp_loss', value: '3', text: '-3 опыта', color: '#EF9A9A' },     // очень светло-красный
-      { type: 'raid', value: 'clear', text: 'Сброс таймера /raid', color: '#1565C0' }, // насыщенный синий — действие
-      { type: 'exp_gain', value: '24', text: '24 опыта', color: '#2E7D32' },    // насыщенный тёмно-зеленый
-      { type: 'exp_gain', value: 24, text: '24 опыта', color: '#66BB6A' },      // светло-зеленый
-      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#D32F2F' },     // ярко-красный
-      { type: 'item', value: 'epic', text: '🎁', color: '#8E24AA' },            // фиолетовый - оставил
-      { type: 'exp_gain', value: 24, text: '24 опыта', color: '#388E3C' },      // зелёный (повтор, можно заменить)
-      { type: 'exp_gain', value: 6, text: '6 опыта', color: '#81C784' },        // светло-зеленый
-      { type: 'exp_loss', value: '6', text: '-6 опыта', color: '#AD1457' }      // тёмно-розовый
+      { type: 'exp_gain', value: 12, text: '12 опыта', color: '#388E3C' },       // зелёный
+      { type: 'exp_loss', value: 12, text: '-12 опыта', color: '#C62828' },      // тёмно-красный
+      { type: 'exp_loss', value: '6', text: '-6 опыта', color: '#E57373' },      // светло-красный
+      { type: 'item', value: 'legendary', text: '🎁', color: '#FFD700' },        // золотой (оставлен)
+      { type: 'premium', value: 7, text: 'премиум на 7 дней', color: '#6A1B9A' },// пурпурный
+      { type: 'exp_gain', value: 24, text: '24 опыта', color: '#43A047' },       // другой зелёный
+      { type: 'raid', value: 'clear', text: 'Сброс таймера /raid', color: '#1565C0' }, // синий
+      { type: 'exp_loss', value: '3', text: '-3 опыта', color: '#EF9A9A' },       // очень светло-красный
+      { type: 'exp_gain', value: 48, text: '48 опыта', color: '#66BB6A' },       // светло-зеленый
+      { type: 'exp_loss', value: 24, text: '-24 опыта', color: '#B71C1C' },      // насыщенный красный
+      { type: 'item', value: 'epic', text: '🎁', color: '#8E24AA' },             // фиолетовый (оставлен)
+      { type: 'exp_gain', value: 6, text: '6 опыта', color: '#81C784' },         // светло-зеленый другой
+      { type: 'exp_loss', value: '6', text: '-6 опыта', color: '#AD1457' }       // тёмно-розовый
     ];
 
     const anglePerSegment = (2 * Math.PI) / rewards.length;
