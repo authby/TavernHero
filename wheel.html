@@ -3,10 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#222" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Колесо фортуны</title>
   <style>
     body {
@@ -15,9 +11,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      width: 100vw;
       margin: 0;
-      padding: 0;
       background: linear-gradient(135deg, #222, #333);
       font-family: Arial, sans-serif;
       overflow: hidden;
@@ -25,8 +19,7 @@
     #wheel-container {
       width: 80vw;
       max-width: 500px;
-      max-height: 80vh;
-      aspect-ratio: 1 / 1;
+      aspect-ratio: 1/1;
       position: relative;
       margin-bottom: 20px;
     }
@@ -59,7 +52,7 @@
       height: 100%;
       border: 4px solid #fff;
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
       background: #fff;
     }
     #spinButton {
@@ -75,7 +68,7 @@
     }
     #spinButton:hover:not(:disabled) {
       transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+      box-shadow: 0 0 15px rgba(76,175,80,0.5);
     }
     #spinButton:disabled {
       background: #666;
@@ -87,41 +80,12 @@
       60%  { transform: translateX(-50%) translateY(5px); }
       100% { transform: translateX(-50%) translateY(0); }
     }
-
-    /* --- Desktop адаптация --- */
-    @media (min-width: 768px) {
-      body {
-        justify-content: flex-start;
-        padding-top: 50px;
-      }
-
-      #wheel-container {
-        max-width: 600px;
-        max-height: 600px;
-        margin-bottom: 40px;
-      }
-
-      #spinButton {
-        font-size: 24px;
-        padding: 18px 40px;
-      }
-
-      #pointer {
-        bottom: -40px;
-        border-bottom-width: 50px;
-      }
-
-      #pointer::after {
-        border-bottom-width: 50px;
-      }
-    }
-
     #rewardPopup {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0,0,0,0.85);
       color: #fff;
       padding: 20px 30px;
       border-radius: 12px;
@@ -176,7 +140,6 @@
     const anglePerSegment = (2 * Math.PI) / rewards.length;
     let currentAngle = 0;
     let spinning = false;
-    let spinVelocity = 0;
 
     function drawWheel() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -184,12 +147,11 @@
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
       const extendedRadius = baseRadius + 20;
-    
+
       rewards.forEach((reward, index) => {
         const startAngle = currentAngle + anglePerSegment * index;
         const endAngle = startAngle + anglePerSegment;
-      
-        // Сектор
+
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, extendedRadius, startAngle, endAngle);
@@ -198,27 +160,24 @@
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#fff';
         ctx.stroke();
-      
-        // Подготовка текста
+
         const midAngle = startAngle + anglePerSegment / 2;
         const isEmoji = /^[^\w\s]+$/.test(reward.text);
         const fontSize = isEmoji
           ? Math.max(10, canvas.width / 18)
           : Math.max(10, canvas.width / 40);
-      
+
         ctx.font = `bold ${fontSize}px "Segoe UI Emoji", Arial`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-      
+
         ctx.save();
         if (isEmoji) {
-          // Рисуем эмодзи по координатам (без поворота)
           const x = centerX + baseRadius * 0.7 * Math.cos(midAngle);
           const y = centerY + baseRadius * 0.7 * Math.sin(midAngle);
           ctx.fillText(reward.text, x, y);
         } else {
-          // Текст поворачиваем
           ctx.translate(centerX, centerY);
           ctx.rotate(midAngle);
           ctx.fillText(reward.text, baseRadius * 0.7, 0);
@@ -227,54 +186,77 @@
       });
     }
 
-    function animate() {
-      if (spinning) {
-        currentAngle += spinVelocity;
-        spinVelocity *= 0.985;
-        if (spinVelocity < 0.002) {
+    // Запрос на сервер на выбор награды
+    spinButton.addEventListener("click", () => {
+      if (spinning) return;
+      spinning = true;
+      spinButton.disabled = true;
+
+      Telegram.WebApp.sendData(JSON.stringify({ action: "spin_request" }));
+    });
+
+    // Получаем ответ от бота с выбранной наградой и запускаем анимацию
+    window.addEventListener("message", (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "spin_result") {
+          animateSpinToIndex(data.index, data.reward);
+        }
+      } catch (e) {
+        console.error("Ошибка парсинга сообщения:", e);
+      }
+    });
+
+    function animateSpinToIndex(index, reward) {
+      const totalSegments = rewards.length;
+      const stopAngle =
+        2 * Math.PI * 5 + // 5 полных оборотов для плавности
+        index * anglePerSegment +
+        anglePerSegment / 2;
+
+      const duration = 4000;
+      const start = performance.now();
+
+      function animate(time) {
+        const elapsed = time - start;
+        if (elapsed < duration) {
+          const progress = elapsed / duration;
+          // easeOut cubic
+          const ease = 1 - Math.pow(1 - progress, 3);
+          currentAngle = ease * stopAngle;
+          drawWheel();
+          requestAnimationFrame(animate);
+        } else {
+          currentAngle = stopAngle % (2 * Math.PI);
+          drawWheel();
           spinning = false;
-          //spinButton.disabled = false;
-          showResult();
+          showResultPopup(reward);
         }
       }
-      drawWheel();
+
       requestAnimationFrame(animate);
     }
 
-    function showResult() {
-      const correctedAngle = (2 * Math.PI - (currentAngle % (2 * Math.PI)) + Math.PI / 2) % (2 * Math.PI);
-      const index = Math.floor(correctedAngle / anglePerSegment);
-      const reward = rewards[index];
-      pointer.style.animation = 'bounce 0.5s ease';
-      setTimeout(() => pointer.style.animation = 'none', 500);
-    
-      // Показать всплывающий текст
-      const popup = document.getElementById('rewardPopup');
+    function showResultPopup(reward) {
+      pointer.style.animation = "bounce 0.5s ease";
+      setTimeout(() => (pointer.style.animation = "none"), 500);
+
+      const popup = document.getElementById("rewardPopup");
       popup.textContent = reward.text;
-      popup.style.opacity = '1';
-    
+      popup.style.opacity = "1";
+
       setTimeout(() => {
-        Telegram.WebApp.sendData(JSON.stringify({ type: reward.type, value: reward.value }));
+        Telegram.WebApp.sendData(JSON.stringify(reward));
       }, 500);
-    
-      // Скрыть всплывающий текст через 2 сек
+
       setTimeout(() => {
-        popup.style.opacity = '0';
+        popup.style.opacity = "0";
       }, 2000);
-    
-      // Закрыть WebApp
+
       setTimeout(() => {
         Telegram.WebApp.close();
       }, 2500);
     }
-
-    spinButton.addEventListener('click', () => {
-      if (!spinning) {
-        spinning = true;
-        spinVelocity = Math.random() * 0.15 + 0.3;
-        spinButton.disabled = true;
-      }
-    });
 
     function resizeCanvas() {
       canvas.width = wheelContainer.offsetWidth;
@@ -282,9 +264,9 @@
       drawWheel();
     }
 
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
-    animate();
+    drawWheel();
   </script>
 </body>
 </html>
