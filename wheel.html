@@ -193,7 +193,7 @@
 
     function spinToIndex(index) {
       const extraTurns = 5 + Math.random() * 2;
-      totalRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2;
+      totalRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2 + Math.PI;
       animationStartTime = null;
       requestAnimationFrame(animateSpin);
     }
