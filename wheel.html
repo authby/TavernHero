@@ -132,6 +132,8 @@
         const start = anglePerSegment * i - currentAngle;
         const end = start + anglePerSegment;
     
+        console.log(`Drawing segment ${i}: Start Angle: ${start}, End Angle: ${end}`);
+    
         // Рисуем сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
