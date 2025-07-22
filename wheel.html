@@ -194,9 +194,18 @@
     let resultIndex = null;
     
     function spinToIndex(index) {
-      document.getElementById("pointer").classList.add("animate");
+      const pointer = document.getElementById("pointer");
+      pointer.classList.remove("animate");
+      void pointer.offsetWidth;
+      pointer.classList.add("animate");
+    
       const extraTurns = 5 + Math.random() * 2;
-      totalRotation = Math.PI * 2 * extraTurns - (index * anglePerSegment) - anglePerSegment / 2 + Math.PI;
+      const targetOffset = Math.PI; // стрелка снизу, значит нужно довернуть на 180°
+      const baseRotation = 2 * Math.PI * extraTurns;
+      const rewardOffset = index * anglePerSegment + anglePerSegment / 2;
+    
+      totalRotation = baseRotation + targetOffset - rewardOffset;
+    
       animationStartTime = null;
       resultIndex = index;
       requestAnimationFrame(animateSpin);
