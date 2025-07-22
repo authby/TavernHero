@@ -73,7 +73,7 @@
       animation: pointer-updown 0.6s ease-in-out infinite;
     }
   </style>
-  <script src="https://telegram.org/js/telegram-web-app.js "></script>
+  <script src="https://telegram.org/js/telegram-web-app.js  "></script>
 </head>
 <body>
   <div id="wheel-container">
@@ -112,6 +112,7 @@
 
     const anglePerSegment = (2 * Math.PI) / rewards.length;
     let currentAngle = 0;
+    let targetAngle = 0;
     let totalRotation = 0;
     let animationStartTime = null;
 
@@ -121,45 +122,23 @@
     const value = urlParams.get("value");
     const text = urlParams.get("text");
 
-    function normalizeAngle(angle) {
-      return angle - Math.floor(angle / (2 * Math.PI)) * (2 * Math.PI);
-    }    
-
-    function getSectorIndexByAngle(angle) {
-        const pointerAngle = normalizeAngle(angle + Math.PI); // Указатель внизу (180°)
-        console.log(`Pointer Angle: ${pointerAngle}`);
-    
-        // Вычисляем индекс сегмента
-        const segmentIndex = Math.floor(normalizeAngle(2 * Math.PI - pointerAngle) / anglePerSegment) % rewards.length;
-        console.log(`Expected Segment: ${resultIndex}, Calculated Segment: ${segmentIndex}`);
-    
-        return segmentIndex;
-    }
-    
     function drawWheel(highlightIndex = null) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const baseRadius = canvas.width / 2 - 20;
-    
-      // Нормализуем текущий угол
-      const normalizedCurrentAngle = normalizeAngle(currentAngle);
+      const extendedRadius = baseRadius + 20;
     
       rewards.forEach((reward, i) => {
-        // Углы сектора относительно нормализованного текущего угла колеса
-        const start = normalizeAngle(anglePerSegment * i - normalizedCurrentAngle);
-        const end = normalizeAngle(start + anglePerSegment);
+        const start = currentAngle + anglePerSegment * i;
+        const end = start + anglePerSegment;
     
-        console.log(`Segment ${i}: Start Angle: ${start}, End Angle: ${end}`);
-    
-        // Рисуем сектор
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, baseRadius, start, end);
+        ctx.arc(centerX, centerY, extendedRadius, start, end);
         ctx.fillStyle = reward.color;
         ctx.fill();
     
-        // Выделение текущего сегмента
         if (highlightIndex === i) {
           ctx.strokeStyle = "#FFD700";
           ctx.lineWidth = 6;
@@ -168,93 +147,87 @@
           ctx.lineWidth = 2;
         }
         ctx.stroke();
+        
+        ctx.fillStyle = "#000";
+        ctx.font = `bold ${canvas.width / 20}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`Index: ${resultIndex !== null ? resultIndex : "-"}`, canvas.width / 2, canvas.height / 2);
     
-        // Текст внутри сегмента
-        const midAngle = normalizeAngle(start + anglePerSegment / 2); // Середина сектора
+        const midAngle = start + anglePerSegment / 2;
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(midAngle); // Поворачиваем текст вдоль радиуса
+        ctx.rotate(midAngle);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#fff";
-        ctx.font = `bold ${canvas.width / 30}px Arial`;
-        ctx.fillText(reward.text, baseRadius * 0.7, 0);
+        ctx.font = `bold ${canvas.width / 30}px "Segoe UI Emoji", Arial`;
+    
+        const label = reward.text;
+        const isEmoji = /^[^\w\s]+$/.test(label);
+    
+        if (isEmoji) {
+          ctx.setTransform(1, 0, 0, 1,
+            centerX + baseRadius * 0.7 * Math.cos(midAngle),
+            centerY + baseRadius * 0.7 * Math.sin(midAngle)
+          );
+          ctx.fillText(label, 0, 0);
+        } else {
+          ctx.fillText(label, baseRadius * 0.7, 0);
+        }
+    
         ctx.restore();
       });
     }
 
     function animateSpin(timestamp) {
-        if (!animationStartTime) animationStartTime = timestamp;
-        const elapsed = (timestamp - animationStartTime) / 1000;
-        const duration = 4; // Продолжительность анимации (в секундах)
-        const t = Math.min(elapsed / duration, 1);
-        const easing = 1 - Math.pow(1 - t, 3); // Замедление в конце
+      if (!animationStartTime) animationStartTime = timestamp;
+      const elapsed = (timestamp - animationStartTime) / 1000;
+      const duration = 4;
+      const t = Math.min(elapsed / duration, 1);
+      const easing = 1 - Math.pow(1 - t, 3);
+      currentAngle = totalRotation * easing;
     
-        // Обновляем текущий угол вращения
-        currentAngle = normalizeAngle(currentAngle + (totalRotation - currentAngle) * easing);
+      drawWheel(t === 1 ? resultIndex : null);
     
-        console.log(`Current Angle: ${currentAngle}, Target Rotation: ${totalRotation}`);
-    
-        drawWheel(t === 1 ? resultIndex : null);
-    
-        if (t < 1) {
-            requestAnimationFrame(animateSpin);
-        } else {
-            // Финальная корректировка угла
-            currentAngle = normalizeAngle(totalRotation);
-            drawWheel(resultIndex);
-            showReward();
-        }
+      if (t < 1) {
+        requestAnimationFrame(animateSpin);
+      } else {
+        showReward();
+      }
     }
 
     let resultIndex = null;
-
+    
     function spinToIndex(index) {
-        console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
-        const pointer = document.getElementById("pointer");
-        pointer.classList.remove("animate");
-        void pointer.offsetWidth;
-        pointer.classList.add("animate");
+      console.log(`Spinning to index: ${index}, reward: ${rewards[index].text}`);
+      const pointer = document.getElementById("pointer");
+      pointer.classList.remove("animate");
+      void pointer.offsetWidth;
+      pointer.classList.add("animate");
     
-        // Дополнительные обороты (5-7 полных оборотов)
-        const extraTurns = 5 + Math.random() * 2;
+      const extraTurns = 5 + Math.random() * 2; // Дополнительные обороты
+      const segmentAngle = anglePerSegment * index; // Угол до начала сегмента
+      const centerSegment = segmentAngle + anglePerSegment / 2; // Центр сегмента
+      const pointerAdjustment = Math.PI; // Стрелка внизу (180°)
+      totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - centerSegment - currentAngle;
     
-        // Целевой угол для центра сегмента
-        const targetSegmentAngle = anglePerSegment * index + anglePerSegment / 2; // Центр сегмента
-    
-        // Полный угол вращения: текущий угол + дополнительные обороты + целевой угол
-        totalRotation = normalizeAngle(currentAngle + (extraTurns * 2 * Math.PI) + (2 * Math.PI - targetSegmentAngle));
-    
-        console.log(`Target Segment Angle: ${targetSegmentAngle}, Total Rotation: ${totalRotation}`);
-    
-        animationStartTime = null;
-        resultIndex = index; // Сохраняем целевой индекс
-        requestAnimationFrame(animateSpin);
+      animationStartTime = null;
+      resultIndex = index;
+      requestAnimationFrame(animateSpin);
     }
 
     function showReward() {
       document.getElementById("pointer").classList.remove("animate");
+      popup.textContent = rewards[resultIndex].text;
+      popup.style.opacity = "1";
     
-      // Определяем индекс сектора под указателем
-      const sectorIndex = getSectorIndexByAngle(currentAngle);
-      console.log(`Sector under pointer: ${sectorIndex}`);
-      console.log(`Current Angle: ${currentAngle}, Pointer Angle: ${normalizeAngle(currentAngle + Math.PI)}`);
+      setTimeout(() => {
+        Telegram.WebApp.sendData(JSON.stringify({ type: rewards[resultIndex].type, value: rewards[resultIndex].value }));
+      }, 500);
     
-      if (sectorIndex >= 0) {
-        popup.textContent = rewards[sectorIndex].text;
-        popup.style.opacity = "1";
-    
-        setTimeout(() => {
-          Telegram.WebApp.sendData(JSON.stringify({ type: rewards[sectorIndex].type, value: rewards[sectorIndex].value }));
-        }, 500);
-    
-        setTimeout(() => popup.style.opacity = "0", 2000);
-        setTimeout(() => Telegram.WebApp.close(), 2500);
-      } else {
-        console.error("Failed to determine the sector under the pointer.");
-        popup.textContent = "Ошибка: не удалось определить сектор";
-        popup.style.opacity = "1";
-      }
+      setTimeout(() => popup.style.opacity = "0", 2000);
+      setTimeout(() => Telegram.WebApp.close(), 2500);
     }
 
     function resizeCanvas() {
@@ -274,6 +247,7 @@
     } else {
       spinToIndex(index);
     }
+    
   </script>
 </body>
 </html>
