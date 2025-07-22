@@ -199,12 +199,11 @@
       void pointer.offsetWidth;
       pointer.classList.add("animate");
     
-      const extraTurns = 5 + Math.random() * 2;
-      const targetOffset = Math.PI; // стрелка снизу, значит нужно довернуть на 180°
-      const baseRotation = 2 * Math.PI * extraTurns;
-      const rewardOffset = index * anglePerSegment - anglePerSegment / 2;
-    
-      totalRotation = baseRotation + targetOffset - rewardOffset;
+      const extraTurns = 5 + Math.random() * 2; // Дополнительные обороты
+      const segmentAngle = anglePerSegment * index; // Угол до начала сегмента
+      const centerSegment = segmentAngle + anglePerSegment / 2; // Центр сегмента
+      const pointerAdjustment = Math.PI; // Стрелка внизу (180°)
+      totalRotation = 2 * Math.PI * extraTurns + pointerAdjustment - centerSegment;
     
       animationStartTime = null;
       resultIndex = index;
