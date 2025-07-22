@@ -196,7 +196,7 @@
         spinVelocity *= 0.985;
         if (spinVelocity < 0.002) {
           spinning = false;
-          spinButton.disabled = false;
+          //spinButton.disabled = false;
           showResult();
         }
       }
@@ -223,7 +223,7 @@
     spinButton.addEventListener('click', () => {
       if (!spinning) {
         spinning = true;
-        spinVelocity = Math.random() * 0.15 + 0.1;
+        spinVelocity = Math.random() * 0.15 + 0.3;
         spinButton.disabled = true;
       }
     });
