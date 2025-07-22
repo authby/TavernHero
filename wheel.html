@@ -178,14 +178,14 @@
       const duration = 4; // Продолжительность анимации (в секундах)
       const t = Math.min(elapsed / duration, 1);
       const easing = 1 - Math.pow(1 - t, 3); // Замедление в конце
-
+    
       // Обновляем текущий угол вращения
       currentAngle = currentAngle + (totalRotation - currentAngle) * easing;
-
+    
       console.log(`Current Angle: ${currentAngle}, Target Rotation: ${totalRotation}`);
-
+    
       drawWheel(t === 1 ? resultIndex : null);
-
+    
       if (t < 1) {
         requestAnimationFrame(animateSpin);
       } else {
@@ -209,7 +209,7 @@
       const targetSegmentAngle = normalizeAngle(anglePerSegment * index + anglePerSegment / 2); // Центр сегмента
       const pointerAdjustment = Math.PI; // Указатель внизу (180°)
     
-      // Полный угол вращения: дополнительные обороты + угол до центра сегмента + корректировка указателя
+      // Полный угол вращения: дополнительные обороты - угол до центра сегмента + корректировка указателя
       totalRotation = currentAngle + (extraTurns * 2 * Math.PI) - targetSegmentAngle + pointerAdjustment;
     
       console.log(`Target Segment Angle: ${targetSegmentAngle}, Total Rotation: ${totalRotation}`);
