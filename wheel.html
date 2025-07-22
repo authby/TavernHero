@@ -239,16 +239,15 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
+    console.log(`Received index: ${index}, type: ${type}, value: ${value}, text: ${text}`);
     if (isNaN(index) || index < 0 || index >= rewards.length) {
       console.error(`Invalid reward index: ${index}`);
       popup.textContent = "Ошибка: неверный индекс награды";
       popup.style.opacity = "1";
-      return;
-    }
-  
-    if (!isNaN(index)) {
+    } else {
       spinToIndex(index);
     }
+    
   </script>
 </body>
 </html>
