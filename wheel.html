@@ -247,7 +247,7 @@
       const pointerDirection = 3 * Math.PI / 2; // Стрелка смотрит вниз (270°)
     
       // Вычисляем угол так, чтобы центр сектора совпадал со стрелкой
-      totalRotation = 2 * Math.PI * extraTurns + pointerDirection - centerOfSegment;
+      totalRotation = 2 * Math.PI * extraTurns + pointerDirection + centerOfSegment;
     
       popup.style.opacity = "0";
       requestAnimationFrame(animateSpin);
