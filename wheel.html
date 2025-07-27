@@ -257,7 +257,7 @@
       popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
 
-      setTimeout(() => popup.style.opacity = "0", 2000);
+      setTimeout(() => popup.style.opacity = "0", 2500);
       setTimeout(() => {
         if (window.Telegram?.WebApp?.sendData) {
           Telegram.WebApp.sendData(JSON.stringify({
@@ -266,7 +266,7 @@
           }));
         }
         Telegram.WebApp.close();
-      }, 1000);
+      }, 1500);
     }
 
     // Добавляем обработчик сенсорных событий
