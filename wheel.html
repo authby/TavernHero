@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Колесо фортуны</title>
   <meta name="theme-color" content="#222" />
+
+  <!-- Адаптивная высота для iOS/Telegram -->
   <style>
+    :root {
+      --vh: 100%;
+    }
     html, body {
       margin: 0 !important;
       padding: 0 !important;
-      height: 100vh;
-      height: 100dvh;
+      height: var(--vh);
       width: 100vw;
       overflow: hidden;
       display: flex;
@@ -111,6 +115,22 @@
       }
     }
   </style>
+
+  <script>
+    // Telegram fullscreen (для Telegram WebApp)
+    Telegram?.WebApp?.expand?.();
+
+    // Обновляем высоту --vh при загрузке и изменении размера
+    function updateVH() {
+      const vh = window.visualViewport?.height || window.innerHeight;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    window.addEventListener('resize', updateVH);
+    window.addEventListener('orientationchange', updateVH);
+    window.addEventListener('load', updateVH);
+    updateVH();
+  </script>
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -121,8 +141,6 @@
   <div id="rewardPopup"></div>
 
   <script>
-    Telegram?.WebApp?.expand?.(); // Попытка открыть WebApp на весь экран
-
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const pointer = document.getElementById("pointer");
