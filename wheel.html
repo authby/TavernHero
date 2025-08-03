@@ -252,6 +252,7 @@
       const minAngle = (index * anglePerSegment) + 0.04;
       const maxAngle = minAngle + anglePerSegment - 0.02;
       const targetAngleInSector = Math.random() * (maxAngle - minAngle) + minAngle;
+      const targetAngleInSector = minAngle;
       const pointerAdjustment = Math.PI / 2;
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - targetAngleInSector;
 
