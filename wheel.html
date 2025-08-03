@@ -249,12 +249,24 @@
       resultIndex = index;
 
       const extraTurns = 5 + Math.floor(Math.random() * 3);
-      const minAngle = (index * anglePerSegment) + 0.06;
+      console.log('Extra Turns:', extraTurns);
+      
+      const minAngle = (index * anglePerSegment);// + 0.03;
+      console.log('Min Angle:', minAngle);
+      
       const maxAngle = minAngle + anglePerSegment - 0.02;
-      //const targetAngleInSector = Math.random() * (maxAngle - minAngle) + minAngle;
+      console.log('Max Angle:', maxAngle);
+      
+      // const targetAngleInSector = Math.random() * (maxAngle - minAngle) + minAngle;
       const targetAngleInSector = minAngle;
+      console.log('Target Angle in Sector:', targetAngleInSector);
+      
       const pointerAdjustment = Math.PI / 2;
+      console.log('Pointer Adjustment (radians):', pointerAdjustment);
+      
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - targetAngleInSector;
+      console.log('Total Rotation (radians):', totalRotation);
+
 
       popup.style.opacity = "0";
       requestAnimationFrame(animateSpin);
