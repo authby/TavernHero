@@ -279,7 +279,9 @@
         if (window.Telegram?.WebApp?.sendData) {
           Telegram.WebApp.sendData(JSON.stringify({
             type: rewards[resultIndex].type,
-            value: rewards[resultIndex].value
+            value: rewards[resultIndex].value,
+            text: rewards[resultIndex].text,
+            session_id: sessionId
           }));
         }
         Telegram.WebApp.close();
@@ -294,8 +296,6 @@
     canvas.addEventListener('touchend', (e) => {
       e.preventDefault();
       pointer.classList.remove('animate');
-      const urlParams = new URLSearchParams(window.location.search);
-      const indexParam = parseInt(urlParams.get("index"), 10);
       if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
         spinToIndex(indexParam);
       }
@@ -306,6 +306,8 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const indexParam = parseInt(urlParams.get("index"), 10);
+    const sessionId = urlParams.get("session_id"); // <-- вынесено
+    
     if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
       spinToIndex(indexParam);
     } else {
