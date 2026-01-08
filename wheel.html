@@ -120,9 +120,28 @@
   </div>
   <div id="rewardPopup"></div>
 
-  <script>
-    Telegram?.WebApp?.expand?.(); // Попытка открыть WebApp на весь экран
+	<script>
+		const tg = window.Telegram?.WebApp;
 
+		if (tg) {
+			tg.ready();
+			tg.disableVerticalSwipes();
+			tg.setBackgroundColor('#222');
+			tg.setHeaderColor('#222');
+
+			// Первый шанс раскрыться
+			setTimeout(() => {
+				tg.expand();
+			}, 100);
+
+			// Второй шанс — после пересчёта viewport (Android)
+			tg.onEvent('viewportChanged', () => {
+				tg.expand();
+			});
+		}
+	</script>
+
+  <script>
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const pointer = document.getElementById("pointer");
