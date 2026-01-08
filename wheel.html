@@ -306,13 +306,40 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const indexParam = parseInt(urlParams.get("index"), 10);
-    const sessionId = urlParams.get("session_id"); // <-- вынесено
+    const sessionId = urlParams.get("session_id");
     
-    if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
-      spinToIndex(indexParam);
+    function startSpinIfNeeded() {
+      if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
+        spinToIndex(indexParam);
+      } else {
+        popup.textContent = "Ошибка: неверный индекс";
+        popup.style.opacity = "1";
+      }
+    }
+    
+    // Ждём полной готовности WebApp
+    if (Telegram && Telegram.WebApp) {
+      Telegram.WebApp.ready(); // Обязательно вызываем
+      Telegram.WebApp.expand();
+      
+      // Небольшая задержка для стабильности на Android
+      setTimeout(startSpinIfNeeded, 100);
     } else {
-      popup.textContent = "Ошибка: неверный индекс";
-      popup.style.opacity = "1";
+      // Резервный вариант: ждём события инициализации
+      window.addEventListener('TelegramWebAppReady', () => {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        setTimeout(startSpinIfNeeded, 100);
+      });
+      
+      // Если и это не сработает — запускаем через 300 мс (крайний fallback)
+      setTimeout(() => {
+        if (Telegram && Telegram.WebApp) {
+          Telegram.WebApp.ready();
+          Telegram.WebApp.expand();
+        }
+        startSpinIfNeeded();
+      }, 300);
     }
   </script>
 </body>
