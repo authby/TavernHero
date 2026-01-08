@@ -120,57 +120,9 @@
   </div>
   <div id="rewardPopup"></div>
 
-	<script>
-		const tg = window.Telegram?.WebApp;
-
-		const urlParams = new URLSearchParams(window.location.search);
-		const indexParam = parseInt(urlParams.get("index"), 10);
-		const sessionId = urlParams.get("session_id");
-
-		function onReadyToSpin() {
-		resizeCanvas();
-		if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
-			spinToIndex(indexParam);
-		} else {
-			popup.textContent = "Ошибка: неверный индекс";
-			popup.style.opacity = "1";
-		}
-		}
-
-		if (tg) {
-		tg.ready();
-		tg.disableVerticalSwipes();
-		tg.setBackgroundColor('#222');
-		tg.setHeaderColor('#222');
-
-		// Функция для безопасного старта колеса
-		function tryExpandAndSpin() {
-			tg.expand();
-
-			// На Android WebView расширение может занять время, поэтому ждём немного
-			setTimeout(() => {
-			onReadyToSpin();
-			}, 150); // 150ms обычно хватает
-		}
-
-		// Первый старт после готовности WebApp
-		tryExpandAndSpin();
-
-		// Если viewport изменится (Android), пробуем снова
-		tg.onEvent('viewportChanged', () => {
-			tryExpandAndSpin();
-		});
-
-		} else {
-		// fallback если WebApp отсутствует
-		onReadyToSpin();
-		}
-
-		// Resize canvas при изменении окна
-		window.addEventListener("resize", resizeCanvas);
-	</script>
-	
   <script>
+    Telegram?.WebApp?.expand?.(); // Попытка открыть WebApp на весь экран
+
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const pointer = document.getElementById("pointer");
