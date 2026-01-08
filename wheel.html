@@ -317,29 +317,59 @@
       }
     }
     
-    // Ждём полной готовности WebApp
+function startSpinIfNeeded() {
+  if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
+    spinToIndex(indexParam);
+  } else {
+    popup.textContent = "Ошибка: неверный индекс";
+    popup.style.opacity = "1";
+  }
+}
+
+    // Основная инициализация
     if (Telegram && Telegram.WebApp) {
-      Telegram.WebApp.ready(); // Обязательно вызываем
-      Telegram.WebApp.expand();
-      
-      // Небольшая задержка для стабильности на Android
-      setTimeout(startSpinIfNeeded, 100);
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand(); // Первый вызов сразу
+    
+      // Принудительное раскрытие с задержками (практика из сотен мини-аппов)
+      setTimeout(() => Telegram.WebApp.expand(), 100);
+      setTimeout(() => Telegram.WebApp.expand(), 300);
+      setTimeout(() => Telegram.WebApp.expand(), 600);
+    
+      // Дополнительно: на событии изменения viewport (очень помогает на Android)
+      Telegram.WebApp.onEvent('viewportChanged', (viewport) => {
+        if (!viewport.isExpanded) {
+          Telegram.WebApp.expand();
+        }
+      });
+    
+      setTimeout(startSpinIfNeeded, 150); // Немного увеличил задержку для стабильности
     } else {
-      // Резервный вариант: ждём события инициализации
+      // Fallback на событие загрузки скрипта
       window.addEventListener('TelegramWebAppReady', () => {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
-        setTimeout(startSpinIfNeeded, 100);
+        setTimeout(() => Telegram.WebApp.expand(), 100);
+        setTimeout(() => Telegram.WebApp.expand(), 300);
+    
+        Telegram.WebApp.onEvent('viewportChanged', (viewport) => {
+          if (!viewport.isExpanded) {
+            Telegram.WebApp.expand();
+          }
+        });
+    
+        setTimeout(startSpinIfNeeded, 150);
       });
-      
-      // Если и это не сработает — запускаем через 300 мс (крайний fallback)
+    
+      // Крайний fallback
       setTimeout(() => {
         if (Telegram && Telegram.WebApp) {
           Telegram.WebApp.ready();
           Telegram.WebApp.expand();
+          setTimeout(() => Telegram.WebApp.expand(), 200);
         }
         startSpinIfNeeded();
-      }, 300);
+      }, 400);
     }
   </script>
 </body>
