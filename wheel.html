@@ -123,24 +123,53 @@
 	<script>
 		const tg = window.Telegram?.WebApp;
 
-		if (tg) {
-			tg.ready();
-			tg.disableVerticalSwipes();
-			tg.setBackgroundColor('#222');
-			tg.setHeaderColor('#222');
+		const urlParams = new URLSearchParams(window.location.search);
+		const indexParam = parseInt(urlParams.get("index"), 10);
+		const sessionId = urlParams.get("session_id");
 
-			// Первый шанс раскрыться
-			setTimeout(() => {
-				tg.expand();
-			}, 100);
-
-			// Второй шанс — после пересчёта viewport (Android)
-			tg.onEvent('viewportChanged', () => {
-				tg.expand();
-			});
+		function onReadyToSpin() {
+		resizeCanvas();
+		if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
+			spinToIndex(indexParam);
+		} else {
+			popup.textContent = "Ошибка: неверный индекс";
+			popup.style.opacity = "1";
 		}
-	</script>
+		}
 
+		if (tg) {
+		tg.ready();
+		tg.disableVerticalSwipes();
+		tg.setBackgroundColor('#222');
+		tg.setHeaderColor('#222');
+
+		// Функция для безопасного старта колеса
+		function tryExpandAndSpin() {
+			tg.expand();
+
+			// На Android WebView расширение может занять время, поэтому ждём немного
+			setTimeout(() => {
+			onReadyToSpin();
+			}, 150); // 150ms обычно хватает
+		}
+
+		// Первый старт после готовности WebApp
+		tryExpandAndSpin();
+
+		// Если viewport изменится (Android), пробуем снова
+		tg.onEvent('viewportChanged', () => {
+			tryExpandAndSpin();
+		});
+
+		} else {
+		// fallback если WebApp отсутствует
+		onReadyToSpin();
+		}
+
+		// Resize canvas при изменении окна
+		window.addEventListener("resize", resizeCanvas);
+	</script>
+	
   <script>
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
