@@ -294,50 +294,39 @@
     function showReward() {
       popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
-      spinCompleted = true;
     
-      if (window.Telegram?.WebApp) {
-        Telegram.WebApp.MainButton.setText('Получить награду 🎁');
-        Telegram.WebApp.MainButton.color = '#689F38';
-        Telegram.WebApp.MainButton.textColor = '#FFFFFF';
-        Telegram.WebApp.MainButton.show();
-        
-        let dataSent = false;
-        
-        const sendData = () => {
-          if (dataSent) return;
-          dataSent = true;
-          
-          const dataToSend = {
-            type: rewards[resultIndex].type,
-            value: rewards[resultIndex].value,
-            text: rewards[resultIndex].text,
-            session_id: sessionId
-          };
-          
-          console.log('Sending data:', dataToSend);
-          
-          // Используем sendData для InlineKeyboard
-          if (window.Telegram?.WebApp?.sendData) {
-            Telegram.WebApp.sendData(JSON.stringify(dataToSend));
-          }
-          
-          // Закрываем сразу после отправки
-          Telegram.WebApp.close();
+      // Пауза для показа результата
+      setTimeout(() => {
+        popup.style.opacity = "0";
+      }, 2000);
+    
+      // Отправляем данные и закрываем через 2.5 секунды
+      setTimeout(() => {
+        const dataToSend = {
+          type: rewards[resultIndex].type,
+          value: rewards[resultIndex].value,
+          text: rewards[resultIndex].text,
+          session_id: sessionId
         };
         
-        Telegram.WebApp.MainButton.onClick(sendData);
+        console.log('Sending data:', dataToSend);
         
-        // Автоотправка через 3 секунды
-        setTimeout(() => {
-          if (!dataSent) {
-            console.log('Auto-sending after timeout');
-            sendData();
+        if (window.Telegram?.WebApp?.sendData) {
+          try {
+            Telegram.WebApp.sendData(JSON.stringify(dataToSend));
+            console.log('✅ Data sent');
+          } catch (e) {
+            console.error('❌ Send error:', e);
           }
-        }, 3000);
-      }
-    
-      setTimeout(() => popup.style.opacity = "0", 2500);
+        } else {
+          console.error('❌ sendData not available');
+        }
+        
+        // Закрываем через 300мс после отправки
+        setTimeout(() => {
+          Telegram.WebApp.close();
+        }, 300);
+      }, 2500);
     }
 
     canvas.addEventListener('touchstart', (e) => {
