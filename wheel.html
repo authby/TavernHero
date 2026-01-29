@@ -183,6 +183,7 @@
     let totalRotation = 0;
     let animationStartTime = null;
     let resultIndex = null;
+    let spinCompleted = false;
 
     function resizeCanvas() {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio;
@@ -293,19 +294,29 @@
     function showReward() {
       popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
+      spinCompleted = true;
+
+      // Показываем MainButton для отправки данных
+      if (window.Telegram?.WebApp) {
+        Telegram.WebApp.MainButton.setText('Получить награду 🎁');
+        Telegram.WebApp.MainButton.color = '#689F38';
+        Telegram.WebApp.MainButton.textColor = '#FFFFFF';
+        Telegram.WebApp.MainButton.show();
+        
+        Telegram.WebApp.MainButton.onClick(() => {
+          if (window.Telegram?.WebApp?.sendData) {
+            Telegram.WebApp.sendData(JSON.stringify({
+              type: rewards[resultIndex].type,
+              value: rewards[resultIndex].value,
+              text: rewards[resultIndex].text,
+              session_id: sessionId
+            }));
+          }
+          Telegram.WebApp.close();
+        });
+      }
 
       setTimeout(() => popup.style.opacity = "0", 2500);
-      setTimeout(() => {
-        if (window.Telegram?.WebApp?.sendData) {
-          Telegram.WebApp.sendData(JSON.stringify({
-            type: rewards[resultIndex].type,
-            value: rewards[resultIndex].value,
-            text: rewards[resultIndex].text,
-            session_id: sessionId
-          }));
-        }
-        Telegram.WebApp.close();
-      }, 1500);
     }
 
     canvas.addEventListener('touchstart', (e) => {
@@ -316,9 +327,6 @@
     canvas.addEventListener('touchend', (e) => {
       e.preventDefault();
       pointer.classList.remove('animate');
-      if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
-        spinToIndex(indexParam);
-      }
     });
 
     window.addEventListener("resize", resizeCanvas);
@@ -328,65 +336,49 @@
     const indexParam = parseInt(urlParams.get("index"), 10);
     const sessionId = urlParams.get("session_id");
 
-		const urlParams = new URLSearchParams(window.location.search);
-		const indexParam = parseInt(urlParams.get("index"), 10);
-		const sessionId = urlParams.get("session_id");
-		let hasSpun = false; // Добавьте этот флаг
+    function startSpinIfNeeded() {
+      if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
+        // Автоматически крутим колесо
+        spinToIndex(indexParam);
+      } else {
+        popup.textContent = "Ошибка: неверный индекс";
+        popup.style.opacity = "1";
+      }
+    }
 
-		function startSpinIfNeeded() {
-			// НЕ запускаем автоматически, только проверяем валидность
-			if (isNaN(indexParam) || indexParam < 0 || indexParam >= rewards.length) {
-				popup.textContent = "Ошибка: неверный индекс";
-				popup.style.opacity = "1";
-			}
-		}
-
-		canvas.addEventListener('touchend', (e) => {
-			e.preventDefault();
-			pointer.classList.remove('animate');
-			
-			// Крутим только если еще не крутили
-			if (!hasSpun && !isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
-				hasSpun = true;
-				spinToIndex(indexParam);
-			}
-		});
-
-		// В initWebApp оставляем только инициализацию, БЕЗ автозапуска
-		const initWebApp = () => {
-			if (!Telegram?.WebApp) return;
-			
-			Telegram.WebApp.ready();
-			Telegram.WebApp.expand();
-			Telegram.WebApp.disableVerticalSwipes();
-			Telegram.WebApp.enableClosingConfirmation();
-			
-			// Супер-агрессивное раскрытие
-			for (let i = 0; i < 20; i++) {
-				setTimeout(() => Telegram.WebApp.expand(), i * 100);
-			}
-			
-			// Постоянный мониторинг
-			const keepExpanded = setInterval(() => {
-				if (!Telegram.WebApp.isExpanded) {
-					Telegram.WebApp.expand();
-				}
-			}, 100);
-			
-			setTimeout(() => clearInterval(keepExpanded), 3000);
-			
-			// Реакция на изменения viewport
-			Telegram.WebApp.onEvent('viewportChanged', (data) => {
-				console.log('Viewport changed:', data);
-				if (!data.isExpanded) {
-					Telegram.WebApp.expand();
-				}
-			});
-			
-			// УБРАЛИ setTimeout(startSpinIfNeeded, 500);
-			// Теперь просто проверяем валидность без запуска
-			startSpinIfNeeded();
-		};
+    // Основная инициализация - максимально агрессивная для Android
+    const initWebApp = () => {
+      if (!Telegram?.WebApp) return;
+      
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      Telegram.WebApp.disableVerticalSwipes();
+      
+      // Супер-агрессивное раскрытие
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => Telegram.WebApp.expand(), i * 100);
+      }
+      
+      // Постоянный мониторинг
+      const keepExpanded = setInterval(() => {
+        if (!Telegram.WebApp.isExpanded) {
+          Telegram.WebApp.expand();
+        }
+      }, 100);
+      
+      setTimeout(() => clearInterval(keepExpanded), 3000);
+      
+      // Реакция на изменения viewport
+      Telegram.WebApp.onEvent('viewportChanged', (data) => {
+        console.log('Viewport changed:', data);
+        if (!data.isExpanded) {
+          Telegram.WebApp.expand();
+        }
+      });
+      
+      // АВТОЗАПУСК вращения через 500мс
+      setTimeout(startSpinIfNeeded, 500);
+    };
 
     // Запускаем немедленно
     initWebApp();
