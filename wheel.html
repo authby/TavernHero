@@ -296,7 +296,6 @@
       popup.style.opacity = "1";
       spinCompleted = true;
     
-      // Показываем MainButton для отправки данных
       if (window.Telegram?.WebApp) {
         Telegram.WebApp.MainButton.setText('Получить награду 🎁');
         Telegram.WebApp.MainButton.color = '#689F38';
@@ -309,37 +308,30 @@
           if (dataSent) return;
           dataSent = true;
           
-          console.log('Sending data:', {
+          const dataToSend = {
             type: rewards[resultIndex].type,
             value: rewards[resultIndex].value,
             text: rewards[resultIndex].text,
             session_id: sessionId
-          });
+          };
           
+          console.log('Sending data:', dataToSend);
+          
+          // Используем sendData для InlineKeyboard
           if (window.Telegram?.WebApp?.sendData) {
-            Telegram.WebApp.sendData(JSON.stringify({
-              type: rewards[resultIndex].type,
-              value: rewards[resultIndex].value,
-              text: rewards[resultIndex].text,
-              session_id: sessionId
-            }));
-            console.log('Data sent successfully');
-          } else {
-            console.error('Telegram.WebApp.sendData not available');
+            Telegram.WebApp.sendData(JSON.stringify(dataToSend));
           }
           
-          setTimeout(() => {
-            Telegram.WebApp.close();
-          }, 300);
+          // Закрываем сразу после отправки
+          Telegram.WebApp.close();
         };
         
-        // При клике на кнопку
         Telegram.WebApp.MainButton.onClick(sendData);
         
-        // АВТОМАТИЧЕСКИ отправляем через 3 секунды
+        // Автоотправка через 3 секунды
         setTimeout(() => {
           if (!dataSent) {
-            console.log('Auto-sending data after timeout');
+            console.log('Auto-sending after timeout');
             sendData();
           }
         }, 3000);
