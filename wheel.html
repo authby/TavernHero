@@ -295,7 +295,7 @@
       popup.textContent = rewards[resultIndex].text;
       popup.style.opacity = "1";
       spinCompleted = true;
-
+    
       // Показываем MainButton для отправки данных
       if (window.Telegram?.WebApp) {
         Telegram.WebApp.MainButton.setText('Получить награду 🎁');
@@ -303,7 +303,19 @@
         Telegram.WebApp.MainButton.textColor = '#FFFFFF';
         Telegram.WebApp.MainButton.show();
         
-        Telegram.WebApp.MainButton.onClick(() => {
+        let dataSent = false;
+        
+        const sendData = () => {
+          if (dataSent) return;
+          dataSent = true;
+          
+          console.log('Sending data:', {
+            type: rewards[resultIndex].type,
+            value: rewards[resultIndex].value,
+            text: rewards[resultIndex].text,
+            session_id: sessionId
+          });
+          
           if (window.Telegram?.WebApp?.sendData) {
             Telegram.WebApp.sendData(JSON.stringify({
               type: rewards[resultIndex].type,
@@ -311,11 +323,28 @@
               text: rewards[resultIndex].text,
               session_id: sessionId
             }));
+            console.log('Data sent successfully');
+          } else {
+            console.error('Telegram.WebApp.sendData not available');
           }
-          Telegram.WebApp.close();
-        });
+          
+          setTimeout(() => {
+            Telegram.WebApp.close();
+          }, 300);
+        };
+        
+        // При клике на кнопку
+        Telegram.WebApp.MainButton.onClick(sendData);
+        
+        // АВТОМАТИЧЕСКИ отправляем через 3 секунды
+        setTimeout(() => {
+          if (!dataSent) {
+            console.log('Auto-sending data after timeout');
+            sendData();
+          }
+        }, 3000);
       }
-
+    
       setTimeout(() => popup.style.opacity = "0", 2500);
     }
 
