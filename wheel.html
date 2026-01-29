@@ -3,14 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Колесо фортуны</title>
   <meta name="theme-color" content="#222" />
+  
+  <!-- КРИТИЧНО: загружаем Telegram SDK ПЕРВЫМ -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  
+  <!-- Инициализируем expand ДО загрузки стилей -->
+  <script>
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+      Telegram.WebApp.disableVerticalSwipes();
+    }
+  </script>
+  
   <style>
+    html {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
     html, body {
       margin: 0 !important;
       padding: 0 !important;
       height: 100vh;
       height: 100dvh;
+      min-height: 100vh;
+      min-height: 100dvh;
       width: 100vw;
       overflow: hidden;
       display: flex;
@@ -25,6 +50,14 @@
       right: 0;
       bottom: 0;
       box-sizing: border-box;
+    }
+
+    /* Для Android WebView */
+    @supports (-webkit-touch-callout: none) {
+      html, body {
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+      }
     }
 
     #wheel-container {
@@ -111,7 +144,6 @@
       }
     }
   </style>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div id="wheel-container">
@@ -121,8 +153,6 @@
   <div id="rewardPopup"></div>
 
   <script>
-    Telegram?.WebApp?.expand?.(); // Попытка открыть WebApp на весь экран
-
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const pointer = document.getElementById("pointer");
@@ -248,23 +278,13 @@
       resultIndex = index;
 
       const extraTurns = 5 + Math.floor(Math.random() * 3);
-      //console.log('Extra Turns:', extraTurns);
-      
       const minAngle = (index * anglePerSegment) - 0.02;
-      //console.log('Min Angle:', minAngle);
-      
       const maxAngle = minAngle + anglePerSegment - 0.01;
-      //console.log('Max Angle:', maxAngle);
-      
       const targetAngleInSector = Math.random() * (maxAngle - minAngle) + minAngle;
-      //console.log('Target Angle in Sector:', targetAngleInSector);
-      
       const pointerAdjustment = Math.PI / 2;
-      //console.log('Pointer Adjustment (radians):', pointerAdjustment);
       
       totalRotation = (2 * Math.PI * extraTurns) + pointerAdjustment - targetAngleInSector;
       console.log('Total Rotation (radians):', totalRotation);
-
 
       popup.style.opacity = "0";
       requestAnimationFrame(animateSpin);
@@ -307,7 +327,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const indexParam = parseInt(urlParams.get("index"), 10);
     const sessionId = urlParams.get("session_id");
-    
+
     function startSpinIfNeeded() {
       if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
         spinToIndex(indexParam);
@@ -316,61 +336,48 @@
         popup.style.opacity = "1";
       }
     }
-    
-function startSpinIfNeeded() {
-  if (!isNaN(indexParam) && indexParam >= 0 && indexParam < rewards.length) {
-    spinToIndex(indexParam);
-  } else {
-    popup.textContent = "Ошибка: неверный индекс";
-    popup.style.opacity = "1";
-  }
-}
 
-    // Основная инициализация
-    if (Telegram && Telegram.WebApp) {
+    // Основная инициализация - максимально агрессивная для Android
+    const initWebApp = () => {
+      if (!Telegram?.WebApp) return;
+      
       Telegram.WebApp.ready();
-      Telegram.WebApp.expand(); // Первый вызов сразу
-    
-      // Принудительное раскрытие с задержками (практика из сотен мини-аппов)
-      setTimeout(() => Telegram.WebApp.expand(), 100);
-      setTimeout(() => Telegram.WebApp.expand(), 300);
-      setTimeout(() => Telegram.WebApp.expand(), 600);
-    
-      // Дополнительно: на событии изменения viewport (очень помогает на Android)
-      Telegram.WebApp.onEvent('viewportChanged', (viewport) => {
-        if (!viewport.isExpanded) {
+      Telegram.WebApp.expand();
+      Telegram.WebApp.disableVerticalSwipes();
+      Telegram.WebApp.enableClosingConfirmation();
+      
+      // Супер-агрессивное раскрытие
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => Telegram.WebApp.expand(), i * 100);
+      }
+      
+      // Постоянный мониторинг
+      const keepExpanded = setInterval(() => {
+        if (!Telegram.WebApp.isExpanded) {
+          Telegram.WebApp.expand();
+        }
+      }, 100);
+      
+      setTimeout(() => clearInterval(keepExpanded), 3000);
+      
+      // Реакция на изменения viewport
+      Telegram.WebApp.onEvent('viewportChanged', (data) => {
+        console.log('Viewport changed:', data);
+        if (!data.isExpanded) {
           Telegram.WebApp.expand();
         }
       });
-    
-      setTimeout(startSpinIfNeeded, 150); // Немного увеличил задержку для стабильности
-    } else {
-      // Fallback на событие загрузки скрипта
-      window.addEventListener('TelegramWebAppReady', () => {
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
-        setTimeout(() => Telegram.WebApp.expand(), 100);
-        setTimeout(() => Telegram.WebApp.expand(), 300);
-    
-        Telegram.WebApp.onEvent('viewportChanged', (viewport) => {
-          if (!viewport.isExpanded) {
-            Telegram.WebApp.expand();
-          }
-        });
-    
-        setTimeout(startSpinIfNeeded, 150);
-      });
-    
-      // Крайний fallback
-      setTimeout(() => {
-        if (Telegram && Telegram.WebApp) {
-          Telegram.WebApp.ready();
-          Telegram.WebApp.expand();
-          setTimeout(() => Telegram.WebApp.expand(), 200);
-        }
-        startSpinIfNeeded();
-      }, 400);
-    }
+      
+      setTimeout(startSpinIfNeeded, 500);
+    };
+
+    // Запускаем немедленно
+    initWebApp();
+
+    // Дополнительные попытки на случай задержки загрузки SDK
+    setTimeout(initWebApp, 100);
+    setTimeout(initWebApp, 300);
+    setTimeout(initWebApp, 500);
   </script>
 </body>
 </html>
