@@ -6,234 +6,195 @@
     name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
   />
-  <title>Колесо фортуны</title>
-  <meta name="theme-color" content="#222" />
+  <title>TavernHero Wheel</title>
 
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
       height: 100%;
-      min-height: 100vh;
+      background: #121212;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       overflow: hidden;
-      background: linear-gradient(135deg, #222, #333);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      position: relative; /* ❗ НЕ fixed */
     }
 
-    #wheel-container {
-      position: relative;
-      width: min(90vw, 90vh);
-      height: min(90vw, 90vh);
-      max-width: 600px;
-      max-height: 600px;
+    #app {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 16px;
     }
 
     canvas {
-      width: 100%;
-      height: 100%;
+      background: #1e1e1e;
       border-radius: 50%;
-      background: #fff;
-      border: 2px solid #fff;
-      box-shadow: 0 0 12px rgba(255,255,255,0.25);
-      touch-action: none;
     }
 
-    #pointer {
-      position: absolute;
-      top: calc(100% - 2px);
-      left: 50%;
-      transform: translateX(-50%) rotate(180deg);
-      width: 0;
-      height: 0;
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-top: 28px solid #000;
-      z-index: 10;
-    }
-
-    #rewardPopup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.85);
-      color: #fff;
+    button {
       padding: 14px 22px;
+      font-size: 18px;
       border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 100;
-      max-width: 90%;
-      text-align: center;
-      pointer-events: none;
+      border: none;
+      background: #2ea6ff;
+      color: #000;
+      cursor: pointer;
     }
   </style>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body>
 
-  <div id="wheel-container">
-    <canvas id="wheel"></canvas>
-    <div id="pointer"></div>
+<body>
+  <div id="app">
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <button id="spin">🎡 SPIN</button>
   </div>
 
-  <div id="rewardPopup"></div>
+  <script>
+    /* ============================
+       Telegram Android-safe fallback
+       ============================ */
+    (function () {
+      if (!window.Telegram) window.Telegram = {};
+      if (!Telegram.WebApp) {
+        Telegram.WebApp = {
+          initData: '',
+          initDataUnsafe: {},
+          platform: 'unknown',
+          ready() { console.log('[TG] ready'); },
+          expand() { console.log('[TG] expand'); },
+          close() { console.log('[TG] close'); },
+          sendData(data) { console.log('[TG] sendData:', data); },
+        };
+      }
+    })();
 
-<script>
-/* ================= TELEGRAM INIT ================= */
+    /* ============================
+       Wheel config
+       ============================ */
+    const sectors = [
+      '💰 Gold',
+      '🧪 Potion',
+      '⚔️ Weapon',
+      '🛡 Armor',
+      '💎 Gem',
+      '❌ Nothing'
+    ];
 
-if (window.Telegram && Telegram.WebApp) {
-  Telegram.WebApp.ready();
-  Telegram.WebApp.expand();
+    const colors = [
+      '#ffcc00',
+      '#4caf50',
+      '#f44336',
+      '#03a9f4',
+      '#9c27b0',
+      '#607d8b'
+    ];
 
-  Telegram.WebApp.onEvent('viewportChanged', (e) => {
-    document.documentElement.style.height = `${e.height}px`;
-    document.body.style.height = `${e.height}px`;
-    safeResize();
-  });
-}
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const radius = canvas.width / 2;
 
-/* ================= DATA ================= */
+    let angle = 0;
+    let spinning = false;
 
-const rewards = [
-  { type:'tokens', value:25, text:'💰 25 Жетонов', color:'#F44336' },
-  { type:'exp_gain', value:12, text:'Опыт +12', color:'#2E7D32' },
-  { type:'exp_loss', value:6, text:'Опыт -6', color:'#AD1457' },
-  { type:'item', value:'legendary', text:'🎁', color:'#FFD700' },
-  { type:'exp_loss', value:12, text:'Опыт -12', color:'#D32F2F' },
-  { type:'premium', value:3, text:'Премиум (3 дня)', color:'#689F38' },
-  { type:'exp_loss', value:3, text:'Опыт -3', color:'#1976D2' },
-  { type:'raid', value:'clear', text:'Сброс /raid', color:'#F57C00' },
-  { type:'exp_loss', value:24, text:'Опыт -24', color:'#D32F2F' },
-  { type:'exp_gain', value:6, text:'Опыт +6', color:'#0288D1' },
-  { type:'none', value:'none', text:'Повезёт в другой раз', color:'#555' },
-  { type:'exp_loss', value:15, text:'Опыт -15', color:'#00796B' },
-  { type:'item', value:'epic', text:'🎁', color:'#8E24AA' },
-  { type:'exp_loss', value:18, text:'Опыт -18', color:'#F44336' },
-  { type:'exp_gain', value:30, text:'Опыт +30', color:'#689F38' },
-  { type:'exp_loss', value:21, text:'Опыт -21', color:'#1976D2' },
-];
+    /* ============================
+       Draw wheel
+       ============================ */
+    function drawWheel() {
+      const step = (2 * Math.PI) / sectors.length;
 
-const segmentCount = rewards.length;
-const anglePerSegment = (2 * Math.PI) / segmentCount;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-/* ================= CANVAS ================= */
+      sectors.forEach((label, i) => {
+        const start = angle + i * step;
+        const end = start + step;
 
-const canvas = document.getElementById('wheel');
-const ctx = canvas.getContext('2d');
-const popup = document.getElementById('rewardPopup');
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, end);
+        ctx.fillStyle = colors[i];
+        ctx.fill();
 
-let currentAngle = 0;
-let totalRotation = 0;
-let startTime = null;
-let resultIndex = null;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(start + step / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#000';
+        ctx.font = '16px sans-serif';
+        ctx.fillText(label, radius - 10, 5);
+        ctx.restore();
+      });
 
-function safeResize() {
-  if (!canvas.offsetWidth || !canvas.offsetHeight) {
-    requestAnimationFrame(safeResize);
-    return;
-  }
-  canvas.width = canvas.offsetWidth * devicePixelRatio;
-  canvas.height = canvas.offsetHeight * devicePixelRatio;
-  drawWheel();
-}
+      // Pointer
+      ctx.beginPath();
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx - 10, 20);
+      ctx.lineTo(cx + 10, 20);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
 
-function drawWheel(highlight = null) {
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const radius = canvas.width / 2 - 5;
+    /* ============================
+       Spin to sector (SAFE)
+       ============================ */
+    function spinTo(index) {
+      if (spinning) return;
+      spinning = true;
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+      const step = (2 * Math.PI) / sectors.length;
+      const targetAngle =
+        (3 * Math.PI / 2) - (index * step) - step / 2;
 
-  for (let i = 0; i < segmentCount; i++) {
-    const start = currentAngle + i * anglePerSegment;
-    const end = start + anglePerSegment;
+      const start = angle;
+      const spins = 6 * Math.PI;
+      const final = spins + targetAngle;
+      const duration = 2500;
+      const startTime = performance.now();
 
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,radius,start,end);
-    ctx.closePath();
-    ctx.fillStyle = rewards[i].color;
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.stroke();
+      function animate(t) {
+        const progress = Math.min((t - startTime) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
 
-    const mid = start + anglePerSegment / 2;
-    ctx.save();
-    ctx.translate(cx,cy);
-    ctx.rotate(mid);
-    ctx.fillStyle = '#fff';
-    ctx.font = `${Math.max(14, radius / 14)}px sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText(rewards[i].text, radius - 12, 0);
-    ctx.restore();
-  }
-}
+        angle = start + final * ease;
+        drawWheel();
 
-/* ================= ANIMATION ================= */
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
 
-function animate(ts) {
-  if (!startTime) startTime = ts;
-  const t = Math.min((ts - startTime) / 4000, 1);
-  const ease = 1 - Math.pow(1 - t, 3);
-  currentAngle = totalRotation * ease;
-  drawWheel(t === 1 ? resultIndex : null);
+          const result = sectors[index];
+          Telegram.WebApp.sendData(JSON.stringify({
+            action: 'spin_result',
+            index,
+            result
+          }));
+        }
+      }
 
-  if (t < 1) {
-    requestAnimationFrame(animate);
-  } else {
-    showReward();
-  }
-}
+      requestAnimationFrame(animate);
+    }
 
-function spinTo(index) {
-  resultIndex = index;
-  startTime = null;
-  currentAngle = 0;
+    /* ============================
+       App logic (SAFE)
+       ============================ */
+    window.addEventListener('load', () => {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
 
-  const turns = 6;
-  const sectorAngle = index * anglePerSegment;
-  totalRotation = (2 * Math.PI * turns) + Math.PI / 2 - sectorAngle;
+      drawWheel();
 
-  requestAnimationFrame(animate);
-}
-
-/* ================= RESULT ================= */
-
-function showReward() {
-  popup.textContent = rewards[resultIndex].text;
-  popup.style.opacity = '1';
-
-  setTimeout(() => {
-    Telegram.WebApp.sendData(JSON.stringify({
-      ...rewards[resultIndex],
-      session_id: sessionId
-    }));
-  }, 800);
-
-  setTimeout(() => Telegram.WebApp.close(), 1200);
-}
-
-/* ================= START ================= */
-
-const params = new URLSearchParams(location.search);
-const indexParam = parseInt(params.get('index'), 10);
-const sessionId = params.get('session_id');
-
-safeResize();
-
-if (!isNaN(indexParam)) {
-  setTimeout(() => spinTo(indexParam), 200);
-}
-</script>
-
+      document.getElementById('spin').onclick = () => {
+        // 🔴 ВАЖНО:
+        // В реальности index должен прийти от бота
+        // Здесь — просто пример
+        const forcedIndex = Math.floor(Math.random() * sectors.length);
+        spinTo(forcedIndex);
+      };
+    });
+  </script>
 </body>
 </html>
