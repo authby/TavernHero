@@ -31,7 +31,6 @@
             margin: 40px 0;
         }
 
-        /* Стрелка сверху */
         .arrow {
             position: absolute;
             top: -30px;
@@ -56,7 +55,6 @@
             }
         }
 
-        /* Колесо */
         #wheelCanvas {
             width: 100%;
             height: 100%;
@@ -65,7 +63,6 @@
             background: #fff;
         }
 
-        /* Центральная кнопка */
         .center-circle {
             position: absolute;
             top: 50%;
@@ -87,7 +84,6 @@
             pointer-events: none;
         }
 
-        /* Кнопка вращения */
         #spinBtn {
             padding: 18px 50px;
             font-size: 20px;
@@ -118,7 +114,6 @@
             transform: none;
         }
 
-        /* Текст результата */
         .result-text {
             color: white;
             font-size: 24px;
@@ -134,7 +129,6 @@
             opacity: 1;
         }
 
-        /* Декоративные элементы */
         .sparkle {
             position: absolute;
             width: 4px;
@@ -148,9 +142,25 @@
             0%, 100% { opacity: 0; transform: scale(0); }
             50% { opacity: 1; transform: scale(1); }
         }
+
+        .debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            border-radius: 5px;
+            max-width: 300px;
+            word-wrap: break-word;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
+    <div class="debug" id="debug">Загрузка...</div>
+    
     <div class="wheel-container">
         <div class="arrow"></div>
         <canvas id="wheelCanvas"></canvas>
@@ -161,14 +171,27 @@
     <div class="result-text" id="resultText"></div>
 
     <script>
+        const debugDiv = document.getElementById('debug');
+        function log(msg) {
+            console.log(msg);
+            debugDiv.innerHTML += '<br>' + msg;
+        }
+
+        log('Скрипт запущен');
+        
         const tg = window.Telegram.WebApp;
+        log('WebApp объект: ' + (tg ? 'OK' : 'ОШИБКА'));
+        
         tg.expand();
         tg.ready();
+        log('WebApp ready');
 
         // Получаем параметры из URL
         const urlParams = new URLSearchParams(window.location.search);
         const targetIndex = parseInt(urlParams.get('index')) || 0;
         const sessionId = urlParams.get('session_id');
+        
+        log('Параметры: index=' + targetIndex + ', session_id=' + sessionId);
 
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
@@ -180,7 +203,7 @@
         canvas.width = size;
         canvas.height = size;
 
-        // Конфигурация колеса (должна совпадать с backend)
+        // Конфигурация колеса
         const prizes = [
             { name: "100 монет", color: "#FF6B6B", textColor: "#FFFFFF" },
             { name: "50 монет", color: "#4ECDC4", textColor: "#FFFFFF" },
@@ -203,13 +226,11 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Рисуем сегменты
             prizes.forEach((prize, index) => {
                 const startAngle = rotation + index * sliceAngle - Math.PI / 2;
                 const endAngle = startAngle + sliceAngle;
                 const midAngle = startAngle + sliceAngle / 2;
 
-                // Сегмент
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -217,12 +238,10 @@
                 ctx.fillStyle = prize.color;
                 ctx.fill();
 
-                // Граница сегмента
                 ctx.strokeStyle = '#FFFFFF';
                 ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Текст
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(midAngle);
@@ -231,7 +250,6 @@
                 ctx.fillStyle = prize.textColor;
                 ctx.font = 'bold 16px Arial';
                 
-                // Разбиваем текст на строки если нужно
                 const words = prize.name.split(' ');
                 const textRadius = radius * 0.65;
                 
@@ -245,7 +263,6 @@
                 ctx.restore();
             });
 
-            // Внешняя обводка
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
             ctx.strokeStyle = '#FFFFFF';
@@ -253,36 +270,27 @@
             ctx.stroke();
         }
 
-        // Анимация вращения к целевому индексу
+        // Анимация вращения
         function spinToResult(targetIdx) {
             if (isSpinning) return;
             
+            log('Начало вращения к индексу ' + targetIdx);
             isSpinning = true;
             spinBtn.disabled = true;
             resultText.classList.remove('show');
 
             const sliceAngle = (2 * Math.PI) / prizes.length;
-            
-            // Вычисляем финальный угол
-            // Стрелка вверху, поэтому целевой сегмент должен быть в позиции 12 часов
-            const fullSpins = 5; // количество полных оборотов
-            const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.3; // небольшая случайность
-            
-            // Угол для целевого сегмента (поворачиваем так, чтобы центр сегмента был вверху)
+            const fullSpins = 5;
+            const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.3;
             const targetAngle = (fullSpins * 2 * Math.PI) - (targetIdx * sliceAngle) - (sliceAngle / 2) + randomOffset;
             
-            const duration = 4000; // 4 секунды
+            const duration = 4000;
             const startTime = Date.now();
             const startRotation = currentRotation;
-
-            // Звук вращения (опционально)
-            playSpinSound();
 
             function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-
-                // Easing function (ease-out cubic)
                 const easeOut = 1 - Math.pow(1 - progress, 3);
 
                 currentRotation = startRotation + targetAngle * easeOut;
@@ -291,7 +299,6 @@
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
-                    // Вращение завершено
                     finishSpin(targetIdx);
                 }
             }
@@ -301,35 +308,47 @@
 
         // Завершение вращения
         function finishSpin(resultIndex) {
+            log('Вращение завершено, результат: ' + resultIndex);
             isSpinning = false;
             
-            // Показываем результат
             resultText.textContent = `🎉 ${prizes[resultIndex].name}!`;
             resultText.classList.add('show');
 
-            // Создаём эффект конфетти
             createConfetti();
 
-            // Отправляем результат в Telegram через 1 секунду
+            // КРИТИЧЕСКИ ВАЖНО: отправка данных
+            log('Готовимся отправить данные...');
+            
             setTimeout(() => {
-                if (tg.initDataUnsafe?.user) {
-                    tg.sendData(JSON.stringify({
-                        session_id: sessionId,
-                        result: resultIndex
-                    }));
-                }
+                const data = {
+                    session_id: sessionId,
+                    result: resultIndex
+                };
                 
-                // Закрываем WebApp через 2 секунды после отправки
-                setTimeout(() => {
-                    tg.close();
-                }, 2000);
+                const dataStr = JSON.stringify(data);
+                log('Отправка данных: ' + dataStr);
+                
+                try {
+                    // Проверяем доступность WebApp
+                    if (!tg || !tg.sendData) {
+                        log('ОШИБКА: tg.sendData недоступен!');
+                        return;
+                    }
+                    
+                    tg.sendData(dataStr);
+                    log('sendData вызван успешно');
+                    
+                    // Закрываем через 2 секунды
+                    setTimeout(() => {
+                        log('Закрываем WebApp...');
+                        tg.close();
+                    }, 2000);
+                    
+                } catch (error) {
+                    log('ОШИБКА отправки: ' + error.message);
+                    console.error('Ошибка:', error);
+                }
             }, 1000);
-        }
-
-        // Звук вращения (простая имитация)
-        function playSpinSound() {
-            // Можно добавить реальный звук через Web Audio API
-            // Или использовать HTMLAudioElement
         }
 
         // Эффект конфетти
@@ -353,6 +372,7 @@
 
         // Обработчик кнопки
         spinBtn.addEventListener('click', () => {
+            log('Кнопка нажата');
             if (!isSpinning) {
                 spinToResult(targetIndex);
             }
@@ -360,11 +380,13 @@
 
         // Инициализация
         drawWheel();
+        log('Колесо нарисовано');
 
-        // Установка цветовой темы Telegram
         if (tg.themeParams) {
             document.body.style.background = tg.themeParams.bg_color || document.body.style.background;
         }
+        
+        log('Инициализация завершена');
     </script>
 </body>
 </html>
