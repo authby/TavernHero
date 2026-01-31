@@ -144,6 +144,7 @@
         }
 
         .debug {
+						display: none;
             position: fixed;
             top: 10px;
             left: 10px;
@@ -212,10 +213,10 @@
             { name: "Опыт -12", color: "#D32F2F", textColor: "#FFFFFF" },
             { name: "Премиум аккаунт", color: "#689F38", textColor: "#FFFFFF" },
             { name: "Опыт -3", color: "#1976D2", textColor: "#FFFFFF" },
-            { name: "Сброс таймера /raid", color: "#F57C00", textColor: "#FFFFFF" },
+            { name: "/raid", color: "#F57C00", textColor: "#FFFFFF" },
             { name: "Опыт -24", color: "#D32F2F", textColor: "#FFFFFF" },
             { name: "Опыт +6", color: "#0288D1", textColor: "#FFFFFF" },
-            { name: "❌", color: "#AD1457", textColor: "#FFFFFF" },
+            { name: "🗑️", color: "#AD1457", textColor: "#FFFFFF" },
             { name: "Опыт -15", color: "#00796B", textColor: "#FFFFFF" },
             { name: "🎁", color: "#8E24AA", textColor: "#FFFFFF" },
             { name: "Опыт -18", color: "#F44336", textColor: "#FFFFFF" },
@@ -264,7 +265,7 @@
                 const textRadius = radius * 0.65;
                 
                 // Специальная обработка для эмодзи и длинных текстов
-                if (prize.name === '🎁' || prize.name === '❌') {
+                if (prize.name === '🎁' || prize.name === '🗑️') {
                     ctx.font = 'bold 28px Arial';
                     ctx.fillText(prize.name, textRadius, 0);
                 } else if (words.length > 2) {
@@ -335,50 +336,58 @@
 						animate();
 				}
 
-        // Завершение вращения
-        function finishSpin(resultIndex) {
-            log('Вращение завершено, результат: ' + resultIndex);
-            isSpinning = false;
-            
-            resultText.textContent = `🎉 ${prizes[resultIndex].name}!`;
-            resultText.classList.add('show');
+				// Завершение вращения
+				function finishSpin(resultIndex) {
+						log('Вращение завершено, результат: ' + resultIndex);
+						isSpinning = false;
+						
+						// Специальная обработка
+						let displayText = prizes[resultIndex].name;
+						if (displayText === '🗑️') {
+								displayText = 'Повезёт в следующий раз';
+						}
+						else if (displayText === '/raid') {
+								displayText = 'Сброс таймера /raid';
+						}
+						resultText.textContent = `🎉 ${displayText}!`;
+						resultText.classList.add('show');
 
-            createConfetti();
+						createConfetti();
 
-            // КРИТИЧЕСКИ ВАЖНО: отправка данных
-            log('Готовимся отправить данные...');
-            
-            setTimeout(() => {
-                const data = {
-                    session_id: sessionId,
-                    result: resultIndex
-                };
-                
-                const dataStr = JSON.stringify(data);
-                log('Отправка данных: ' + dataStr);
-                
-                try {
-                    // Проверяем доступность WebApp
-                    if (!tg || !tg.sendData) {
-                        log('ОШИБКА: tg.sendData недоступен!');
-                        return;
-                    }
-                    
-                    tg.sendData(dataStr);
-                    log('sendData вызван успешно');
-                    
-                    // Закрываем через 2 секунды
-                    setTimeout(() => {
-                        log('Закрываем WebApp...');
-                        tg.close();
-                    }, 2000);
-                    
-                } catch (error) {
-                    log('ОШИБКА отправки: ' + error.message);
-                    console.error('Ошибка:', error);
-                }
-            }, 1000);
-        }
+						// КРИТИЧЕСКИ ВАЖНО: отправка данных
+						log('Готовимся отправить данные...');
+						
+						setTimeout(() => {
+								const data = {
+										session_id: sessionId,
+										result: resultIndex
+								};
+								
+								const dataStr = JSON.stringify(data);
+								log('Отправка данных: ' + dataStr);
+								
+								try {
+										// Проверяем доступность WebApp
+										if (!tg || !tg.sendData) {
+												log('ОШИБКА: tg.sendData недоступен!');
+												return;
+										}
+										
+										tg.sendData(dataStr);
+										log('sendData вызван успешно');
+										
+										// Закрываем через 2 секунды
+										setTimeout(() => {
+												log('Закрываем WebApp...');
+												tg.close();
+										}, 2000);
+										
+								} catch (error) {
+										log('ОШИБКА отправки: ' + error.message);
+										console.error('Ошибка:', error);
+								}
+						}, 1000);
+				}
 
         // Эффект конфетти
         function createConfetti() {
