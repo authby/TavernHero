@@ -31,20 +31,20 @@
             margin: 40px 0;
         }
 
-        .arrow {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 25px solid transparent;
-            border-right: 25px solid transparent;
-            border-top: 50px solid #ffffff;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
-            z-index: 100;
-            animation: bounce 0.6s ease-in-out infinite;
-        }
+				.arrow {
+						position: absolute;
+						top: -30px;
+						left: 50%;
+						transform: translateX(-50%);
+						width: 0;
+						height: 0;
+						border-left: 25px solid transparent;
+						border-right: 25px solid transparent;
+						border-top: 50px solid #ffffff;
+						filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+						z-index: 100;
+						animation: bounce 0.6s ease-in-out infinite;
+				}
 
         @keyframes bounce {
             0%, 100% {
@@ -68,8 +68,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
             border: 5px solid white;
@@ -79,7 +79,7 @@
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 40px;
             z-index: 10;
             pointer-events: none;
         }
@@ -122,7 +122,7 @@
             margin-top: 20px;
             opacity: 0;
             transition: opacity 0.5s ease;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .result-text.show {
@@ -164,7 +164,7 @@
     <div class="wheel-container">
         <div class="arrow"></div>
         <canvas id="wheelCanvas"></canvas>
-        <div class="center-circle">SPIN</div>
+        <div class="center-circle">🍀</div>
     </div>
     
     <button id="spinBtn">🎰 Крутить!</button>
@@ -205,12 +205,22 @@
 
         // Конфигурация колеса
         const prizes = [
-            { name: "100 монет", color: "#FF6B6B", textColor: "#FFFFFF" },
-            { name: "50 монет", color: "#4ECDC4", textColor: "#FFFFFF" },
-            { name: "500 монет", color: "#FFD93D", textColor: "#333333" },
-            { name: "1000 монет", color: "#95E1D3", textColor: "#333333" },
-            { name: "Бонус x2", color: "#A8E6CF", textColor: "#333333" },
-            { name: "Попробуй еще", color: "#FFB6B9", textColor: "#FFFFFF" },
+            { name: "💰 100", color: "#F44336", textColor: "#FFFFFF" },
+            { name: "Опыт +12", color: "#2E7D32", textColor: "#FFFFFF" },
+            { name: "Опыт -6", color: "#AD1457", textColor: "#FFFFFF" },
+            { name: "🎁", color: "#FFD700", textColor: "#333333" },
+            { name: "Опыт -12", color: "#D32F2F", textColor: "#FFFFFF" },
+            { name: "Премиум аккаунт", color: "#689F38", textColor: "#FFFFFF" },
+            { name: "Опыт -3", color: "#1976D2", textColor: "#FFFFFF" },
+            { name: "Сброс таймера /raid", color: "#F57C00", textColor: "#FFFFFF" },
+            { name: "Опыт -24", color: "#D32F2F", textColor: "#FFFFFF" },
+            { name: "Опыт +6", color: "#0288D1", textColor: "#FFFFFF" },
+            { name: "❌", color: "#AD1457", textColor: "#FFFFFF" },
+            { name: "Опыт -15", color: "#00796B", textColor: "#FFFFFF" },
+            { name: "🎁", color: "#8E24AA", textColor: "#FFFFFF" },
+            { name: "Опыт -18", color: "#F44336", textColor: "#FFFFFF" },
+            { name: "Опыт +30", color: "#689F38", textColor: "#FFFFFF" },
+            { name: "Опыт -21", color: "#1976D2", textColor: "#FFFFFF" },
         ];
 
         let currentRotation = 0;
@@ -220,7 +230,7 @@
         function drawWheel(rotation = 0) {
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const radius = canvas.width / 2 - 5;
+            const radius = canvas.width / 2 - 2;
             const numSegments = prizes.length;
             const sliceAngle = (2 * Math.PI) / numSegments;
 
@@ -248,14 +258,28 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = prize.textColor;
-                ctx.font = 'bold 16px Arial';
+                ctx.font = 'bold 14px Arial';
                 
                 const words = prize.name.split(' ');
                 const textRadius = radius * 0.65;
                 
-                if (words.length > 1) {
-                    ctx.fillText(words[0], textRadius, -8);
-                    ctx.fillText(words[1], textRadius, 8);
+                // Специальная обработка для эмодзи и длинных текстов
+                if (prize.name === '🎁' || prize.name === '❌') {
+                    ctx.font = 'bold 28px Arial';
+                    ctx.fillText(prize.name, textRadius, 0);
+                } else if (words.length > 2) {
+                    // Для длинных текстов (премиум, сброс таймера, повезёт)
+                    ctx.font = 'bold 11px Arial';
+                    const line1 = words.slice(0, 2).join(' ');
+                    const line2 = words.slice(2).join(' ');
+                    ctx.fillText(line1, textRadius, -8);
+                    ctx.fillText(line2, textRadius, 8);
+                } else if (words.length > 1) {
+                    //ctx.fillText(words[0], textRadius, -8);
+                    //ctx.fillText(words[1], textRadius, 8);
+										//
+										ctx.fillText(prize.name, textRadius, 0);
+										//
                 } else {
                     ctx.fillText(prize.name, textRadius, 0);
                 }
@@ -270,41 +294,46 @@
             ctx.stroke();
         }
 
-        // Анимация вращения
-        function spinToResult(targetIdx) {
-            if (isSpinning) return;
-            
-            log('Начало вращения к индексу ' + targetIdx);
-            isSpinning = true;
-            spinBtn.disabled = true;
-            resultText.classList.remove('show');
+				// Анимация вращения
+				function spinToResult(targetIdx) {
+						if (isSpinning) return;
+						
+						log('Начало вращения к индексу ' + targetIdx);
+						isSpinning = true;
+						spinBtn.disabled = true;
+						resultText.classList.remove('show');
+						
+						// Останавливаем медленное вращение
+						if (idleAnimationId) {
+								cancelAnimationFrame(idleAnimationId);
+						}
 
-            const sliceAngle = (2 * Math.PI) / prizes.length;
-            const fullSpins = 5;
-            const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.3;
-            const targetAngle = (fullSpins * 2 * Math.PI) - (targetIdx * sliceAngle) - (sliceAngle / 2) + randomOffset;
-            
-            const duration = 4000;
-            const startTime = Date.now();
-            const startRotation = currentRotation;
+						const sliceAngle = (2 * Math.PI) / prizes.length;
+						const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 оборотов рандомно
+						const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.8; // Больше рандомности в секторе
+						const targetAngle = (fullSpins * 2 * Math.PI) - (targetIdx * sliceAngle) - (sliceAngle / 2) + randomOffset;
+						
+						const duration = 4000;
+						const startTime = Date.now();
+						const startRotation = currentRotation;
 
-            function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const easeOut = 1 - Math.pow(1 - progress, 3);
+						function animate() {
+								const elapsed = Date.now() - startTime;
+								const progress = Math.min(elapsed / duration, 1);
+								const easeOut = 1 - Math.pow(1 - progress, 3);
 
-                currentRotation = startRotation + targetAngle * easeOut;
-                drawWheel(currentRotation);
+								currentRotation = startRotation + targetAngle * easeOut;
+								drawWheel(currentRotation);
 
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                } else {
-                    finishSpin(targetIdx);
-                }
-            }
+								if (progress < 1) {
+										requestAnimationFrame(animate);
+								} else {
+										finishSpin(targetIdx);
+								}
+						}
 
-            animate();
-        }
+						animate();
+				}
 
         // Завершение вращения
         function finishSpin(resultIndex) {
@@ -387,6 +416,21 @@
         }
         
         log('Инициализация завершена');
+				
+				// Медленное вращение до нажатия кнопки
+				let idleRotation = 0;
+				let idleAnimationId = null;
+
+				function idleAnimation() {
+						if (!isSpinning) {
+								idleRotation += 0.001; // Скорость медленного вращения
+								drawWheel(idleRotation);
+								idleAnimationId = requestAnimationFrame(idleAnimation);
+						}
+				}
+
+				// Запускаем медленное вращение
+				idleAnimation();
     </script>
 </body>
 </html>
